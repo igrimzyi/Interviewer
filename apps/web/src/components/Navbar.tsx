@@ -28,7 +28,7 @@ export default function Navbar() {
                             className="text-xs px-4 py-2 hover:opacity-90 transition-colors duration-300">
                             Sign In</Link>
                         <Link to="/signup"
-                            className={`${buttonStyles} text-white bg-text-primary`}>
+                            className={`${buttonStyles} text-xs text-white bg-text-primary`}>
                             Get Started</Link>
                     </div>
                 </div>
