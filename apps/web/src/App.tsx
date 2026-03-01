@@ -5,7 +5,7 @@ import LandingPage from './pages/LandingPage.tsx'
 
 function App() {
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen w-full">
       <Routes>
         <Route path="/" element={<><Navbar/> <LandingPage /></>} />
         <Route path="/about" element={<div>About Page</div>} />

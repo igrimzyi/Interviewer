@@ -1,11 +1,11 @@
 import { Link } from "react-router-dom"
-import { buttonStyles } from "../styles/shared"
 import { CodeXml, Users, ChartColumn, Calendar, Send, Video, CircleCheckBig, ArrowRight, CirclePlay, type LucideIcon } from "lucide-react"
 
 
 /*TODO:
--Style the top, middle and bottom container so it matches the screenshot
--Fix the links so it can scroll to the sections instead of a seperate webpage
+-Make ui and navbar responsive across various screens.
+-Make links move across sections of the page.
+-Fix padding and sizing of buttons for top, middle and bottom section.
 */
 
 
@@ -57,46 +57,62 @@ export default function LandingPage() {
             description: " Review recordings, compare notes with your team, and make informed hiring decisions."
         }
     ]
-    const subTextStyle = "text-text-secondary text-xs"
+    const subTextStyle = "text-text-secondary sm:text-sm"
 
     return (
-        <div className="grid grid-cols-1cols-1 items-center justify-center px-12">
+        <div className="grid grid-cols-1 place-content-center justify-center w-full">
 
             {/* {Top Section} */}
-            <div className="flex ">
-                <div className="grid grid-cols-2 py-24 gap-8">
-                    <div className="grid grid-cols-1 gap-2">
-                        <div>
-                            <h1 className="text-4xl font-medium text-text-primary"> EnterView</h1>
-                        </div>
-                        <div className={`${subTextStyle}`}>
-                            <p>
-                                The modern platform for hosting technical interviews.
-                                Streamline your hiring process with powerful coding assessments,
-                                real-time collaboration and coprehensive analytics.
-                            </p>
+            <section className="sm:px-10">
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 items-center py-4 sm:py-8 md:py-16 lg:py-20">
+
+                    <div className="grid grid-cols-1 sm:pr-[2vw] ">
+
+                        <div className="">
+                            <div>
+                                <h1 className="text-2xl sm:text-3xl md:text-4xl font-medium text-text-primary"> EnterView</h1>
+                            </div>
+
+                            <div className={`${subTextStyle} sm:py-2 md:py-4`}>
+                                <p>
+                                    The modern platform for hosting technical interviews.
+                                    Streamline your hiring process with powerful coding assessments,
+                                    real-time collaboration and coprehensive analytics.
+                                </p>
+                            </div>
+
+                            {/*Get Started and Watch demo buttons*/}
+                            <div className="flex pr-48  py-4 gap-4">
+                                <Link className="text-xs bg-text-primary text-white  flex justify-center items-center gap-1 font-semibold rounded-md sm:w-32 sm:h-8 py-2 px-2 hover:opacity-90 transition-colors duration-300" to="/login">
+                                    Get Started <ArrowRight className="size-4" /></Link>
+                                <Link className="text-xs bg-white text-text-primary  flex justify-center items-center gap-1 font-semibold rounded-md sm:w-32 sm:h-8 py-2 px-2 hover:opacity-90 transition-colors duration-300" to="/demo">
+                                    <CirclePlay className="size-4" />Watch Demo</Link>
+                            </div>
                         </div>
 
-                        {/*Get Started and Watch demo buttons*/}
-                        <div className="flex items-center pr-8 py-8 gap-4">
-                            <Link className={`${buttonStyles} text-xs bg-text-primary text-white flex justify-center gap-2 font-medium`} to="/login">
-                                Get Started <ArrowRight className="w-4 h-4"/></Link>
-                            <Link className={`${buttonStyles} text-xs bg-white text-text-primary flex justify-center gap-2 font-medium`} to="/demo">
-                                <CirclePlay className="w-4 h-4"/>Watch Demo</Link>
-                        </div>
+
+
+
                     </div>
 
                     {/*Image container*/}
-                    <img className="rounded-md shadow-md" src="/src/assets/session.png" alt="EnterView Logo" />
+                    <div className="relative sm:w-xl md:w-">
+                        <img className="rounded-md shadow-xl object-cover" src="/src/assets/session.png" alt="EnterView Logo" />
+                        <div className="absolute -bottom-4 -right-4 flex items-center rounded-md bg-white shadow-lg px-4 py-2 gap-2">
+                            <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                            <h3 className="text-text-secondary sm:text-xs">Live interview in progress</h3>
+                        </div>
+                    </div>
                 </div>
-            </div>
+
+            </section>
 
 
-            <div className="">
-                <div className="text-center px-48 py-12">
+            <div >
+                <div className="text-center sm:px-[20vw] sm:py-[5vw]">
                     <div>
-                        <h2 className="text-text-primary text-2xl font-medium">Everything you need to conduct technical interviews</h2>
-
+                        <h2 className="text-text-primary sm:text-2xl font-medium">Everything you need to conduct technical interviews</h2>
                     </div>
                     <p className={`${subTextStyle}`}>A complete platform designed for modern techincal hiring teams</p>
                 </div>
@@ -104,45 +120,61 @@ export default function LandingPage() {
             </div>
 
             {/* {Features Section} */}
-            <div className="">
-                <div className="grid grid-cols-3 gap-4">
-                    {features.map((feature) => {
-                        const Icon = feature.icon;
-                        return (
-                            <div className="p-4 rounded-lg bg-white shadowed-md" >
-                                <div className="flex items-center gap-2">
-                                    <div className="bg-primary rounded-xs"><Icon className="text-white"/></div>
-                                    <h3 className="text-sm font-medium">{feature.title}</h3>
-                                </div>
+            <section>
+                <div className="mx-auto max-w-6xl px-4 py-10">
+                    <div className="grid sm:grid-cols-3 gap-6">
+                        {features.map((feature) => {
+                            const Icon = feature.icon;
+                            return (
+                                <div key={feature.title} className="sm:p-6 rounded-lg bg-white shadowed-md" >
 
-                                <p className={`${subTextStyle}`}>{feature.description}</p>
-                            </div>)
-                    })}
+                                    <div className="flex items-center gap-3">
+                                        <div className="sm:h-10 sm:w-10 flex items-center justify-center bg-primary rounded-xl">
+                                            <Icon className="h-5 w-5 text-white " />
+                                        </div>
+                                        <h3 className="text-base font-semibold">{feature.title}</h3>
+                                    </div>
+
+                                    <p className="mt-3 text-sm leading-relaxed text-text-secondary">{feature.description}</p>
+                                </div>)
+                        })}
+                    </div>
+
                 </div>
+            </section>
 
-            </div>
 
             {/*How it works Section*/}
-            <div className="">
-                <div className=" text-center">
-                    <h2 className="text-text-primary text-2xl font-medium">How it works</h2>
-                    <p className={`${subTextStyle}`}>Get started in minutes and transform your technical interview process</p>
-                </div>
+            <section id="how-it-works" className="bg-border py-4 w-full">
+                <div className="mx-auto max-w-6xl px-4">
+                    <h2 className="text-center sm:text-3xl font-semibold">
+                        How it works
+                    </h2>
+                    <p className={`${subTextStyle} mt-2 text-center`}>Get started in minutes and transform your technical interview process</p>
 
-                {/*Steps Section*/}
-                <div className="grid grid-cols-4">
-                    {steps.map((step) => {
-                        const Icon = step.icon
-                        return (
-                            <div className="p-4 rounded-lg bg-white shadowed-md">
-                                <h1><Icon /></h1>
-                                <h2>{step.title}</h2>
-                                <p className={`${subTextStyle}`}>{step.description}</p>
-                            </div>)
-                    })}
-                </div>
+                    <div className="relative mt-10">
+                        {/*Line behind icons*/}
+                        <div className="absolute left-25 top-7 hidden h-0.5  bg-slate-300 w-4xl shadow-2xl sm:block" />
 
-            </div>
+                        {/*Steps Section*/}
+                        <div className="grid sm:grid-cols-4 gap-10">
+                            {steps.map((step) => {
+                                const Icon = step.icon
+                                return (
+                                    <div className="flex flex-col items-center text-center">
+                                        <div className="relative z-10 flex h-14 w-14 items-center justify-center rounded-full bg-primary shadow-sm">
+                                            <Icon className="text-white h-6 w-6" />
+                                        </div>
+                                        <h3 className="mt-4 text-sm font-semibold">{step.title}</h3>
+                                        <p className="mt-2 max-w-[18rem] text-xs leading-relaxed text-slate-500">{step.description}</p>
+                                    </div>)
+                            })}
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+
         </div>
     )
 }
