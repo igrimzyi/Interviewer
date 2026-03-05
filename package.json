@@ -6,7 +6,16 @@
   "author": "",
   "type": "commonjs",
   "main": "index.js",
+  "private": true,
+  "workspaces": [
+    "apps/*"
+  ],
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev:web": "npm run dev --prefix apps/web",
+    "dev:backend": "npm run dev --prefix apps/backend",
+    "dev": "concurrently \"npm run dev:web\" \"npm run dev:backend\""
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1"
   }
 }
