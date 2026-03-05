@@ -1,12 +1,19 @@
 import { Routes, Route, Navigate } from "react-router-dom";
+import Navbar from './components/Navbar.tsx'
+import './index.css'
+import LandingPage from './pages/LandingPage.tsx'
+
 import Dashboard from "./pages/Dashboard";
 
 function App() {
   return (
+    <div className="min-h-screen w-full">
     <Routes>
-      {/* Only actual page */}
+      <Route path="/" element={<><Navbar/> <LandingPage /></>} />
       <Route path="/dashboard" element={<Dashboard />} />
     </Routes>
+    </div>
+    
   );
 }
 

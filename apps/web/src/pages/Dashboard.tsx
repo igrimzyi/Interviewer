@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import Navbar from "../components/Navbar";
+import LoggedInNavbar from "../components/LoggedInNavbar";
 import {
   Plus,
   Users,
@@ -115,7 +115,7 @@ const Dashboard: React.FC = () => {
         fontFamily: "Inter, sans-serif",
       }}
     >
-      <Navbar />
+      <LoggedInNavbar />
 
       <div
         style={{

@@ -1,18 +1,27 @@
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
+@import "tailwindcss";
+@tailwind utilities;
 
 body {
+  margin: 0;
   background-color: #F1F5F9;
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
 }
 
-#root {
-  width: 100%;
-  min-height: 100vh;
+@theme {
+    /* Base palette */
+    --color-black-p: #0F172B;
+    --color-blue-p: #155DFC;
+    --color-charcoal-gray-p: #45556C;
+    --color-light-gray-p: #E2E8F0;
+
+    /* Role aliases*/
+    --color-primary: var(--color-blue-p);
+    --color-text-primary: var(--color-black-p);
+    --color-text-secondary: var(--color-charcoal-gray-p);
+    --color-border: var(--color-light-gray-p);
 }
+
+
 
 /* =========================
    Responsive Dashboard
