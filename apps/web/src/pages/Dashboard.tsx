@@ -92,10 +92,6 @@ const mockActivities: Activity[] = [
   },
 ];
 
-/* ===============================
-   COMPONENT
-================================= */
-
 const Dashboard: React.FC = () => {
   const [interviews, setInterviews] = useState<Interview[]>([]);
   const [activities, setActivities] = useState<Activity[]>([]);
@@ -112,11 +108,29 @@ const Dashboard: React.FC = () => {
   }, []);
 
   return (
-    <div style={{ background: "#F8FAFC", minHeight: "100vh", fontFamily: "Inter, sans-serif" }}>
+    <div
+      style={{
+        background: "#F8FAFC",
+        minHeight: "100vh",
+        fontFamily: "Inter, sans-serif",
+      }}
+    >
       <Navbar />
 
-      <div style={{ maxWidth: 1400, margin: "0 auto", padding: "40px 48px" }}>
-        <h1 style={{ fontSize: 34, fontWeight: 500, color: colors.black }}>
+      <div
+        style={{
+          maxWidth: 1400,
+          margin: "0 auto",
+          padding: "40px 20px",
+        }}
+      >
+        <h1
+          style={{
+            fontSize: "clamp(24px, 5vw, 34px)",
+            fontWeight: 500,
+            color: colors.black,
+          }}
+        >
           Welcome back, Isaiah
         </h1>
 
@@ -132,8 +146,9 @@ const Dashboard: React.FC = () => {
             <div
               style={{
                 display: "grid",
-                gridTemplateColumns: "repeat(4, 1fr)",
-                gap: 24,
+                gridTemplateColumns:
+                  "repeat(auto-fit, minmax(240px, 1fr))",
+                gap: 20,
                 marginTop: 32,
               }}
             >
@@ -147,7 +162,7 @@ const Dashboard: React.FC = () => {
                   key={i}
                   style={{
                     background: "white",
-                    padding: 24,
+                    padding: 20,
                     borderRadius: 16,
                     border: `1px solid ${colors.lightGray}`,
                     display: "flex",
@@ -185,8 +200,9 @@ const Dashboard: React.FC = () => {
             <div
               style={{
                 display: "grid",
-                gridTemplateColumns: "2fr 1fr",
-                gap: 28,
+                gridTemplateColumns:
+                  "repeat(auto-fit, minmax(340px, 1fr))",
+                gap: 24,
                 marginTop: 40,
               }}
             >
@@ -194,7 +210,7 @@ const Dashboard: React.FC = () => {
               <div
                 style={{
                   background: "white",
-                  padding: 28,
+                  padding: 24,
                   borderRadius: 18,
                   border: `1px solid ${colors.lightGray}`,
                   boxShadow: "0 2px 8px rgba(15,23,43,0.04)",
@@ -214,11 +230,11 @@ const Dashboard: React.FC = () => {
                     style={{
                       border: `1px solid ${colors.lightGray}`,
                       borderRadius: 14,
-                      padding: 20,
+                      padding: 18,
                       marginBottom: 16,
                       display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
+                      flexDirection: "column",
+                      gap: 12,
                     }}
                   >
                     <div style={{ display: "flex", gap: 16 }}>
@@ -236,14 +252,14 @@ const Dashboard: React.FC = () => {
                         <FileCode size={18} strokeWidth={1.8} />
                       </div>
 
-                      <div>
+                      <div style={{ flex: 1 }}>
                         <div style={{ fontWeight: 500 }}>
                           {interview.title}
                           <span
                             style={{
-                              marginLeft: 12,
+                              marginLeft: 10,
                               fontSize: 12,
-                              padding: "5px 10px",
+                              padding: "4px 8px",
                               borderRadius: 20,
                               background:
                                 interview.status === "scheduled"
@@ -268,7 +284,8 @@ const Dashboard: React.FC = () => {
                             fontSize: 13,
                             color: "#64748B",
                             display: "flex",
-                            gap: 14,
+                            flexWrap: "wrap",
+                            gap: 12,
                             marginTop: 4,
                           }}
                         >
@@ -287,7 +304,9 @@ const Dashboard: React.FC = () => {
                       </div>
                     </div>
 
-                    <ChevronRight size={20} color={colors.charcoal} />
+                    <div style={{ alignSelf: "flex-end" }}>
+                      <ChevronRight size={20} color={colors.charcoal} />
+                    </div>
                   </div>
                 ))}
 
@@ -311,7 +330,7 @@ const Dashboard: React.FC = () => {
               <div
                 style={{
                   background: "white",
-                  padding: 28,
+                  padding: 24,
                   borderRadius: 18,
                   border: `1px solid ${colors.lightGray}`,
                   boxShadow: "0 2px 8px rgba(15,23,43,0.04)",

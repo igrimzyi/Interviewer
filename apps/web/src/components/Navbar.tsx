@@ -11,6 +11,7 @@ const colors = {
 const Navbar = () => {
   return (
     <div
+      className="navbar-container"
       style={{
         display: "flex",
         justifyContent: "space-between",
@@ -19,6 +20,8 @@ const Navbar = () => {
         background: "white",
         borderBottom: `1px solid ${colors.lightGray}`,
         boxShadow: "0 1px 2px rgba(15,23,43,0.04)",
+        flexWrap: "wrap",
+        rowGap: 12,
       }}
     >
       <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
