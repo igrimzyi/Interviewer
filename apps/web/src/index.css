@@ -4,7 +4,7 @@
 body {
   margin: 0;
   background-color: #F1F5F9;
-  font-family: "Inter", sans-serif;
+  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
 }
 
 @theme {
@@ -19,4 +19,34 @@ body {
     --color-text-primary: var(--color-black-p);
     --color-text-secondary: var(--color-charcoal-gray-p);
     --color-border: var(--color-light-gray-p);
+}
+
+
+
+/* =========================
+   Responsive Dashboard
+========================= */
+
+@media (max-width: 900px) {
+  .dashboard-main-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+@media (max-width: 600px) {
+  .dashboard-container {
+    padding: 24px 16px !important;
+  }
+
+  .dashboard-heading {
+    font-size: 24px !important;
+  }
+
+  .dashboard-actions {
+    grid-template-columns: 1fr !important;
+  }
+
+  .navbar-container {
+    padding: 16px !important;
+  }
 }
