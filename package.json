@@ -1,20 +1,28 @@
 {
-  "name": "live-interviewer",
+  "name": "interviewer",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "keywords": [],
-  "author": "",
   "license": "ISC",
+  "author": "",
   "type": "commonjs",
+  "main": "index.js",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "backend/*"
+  ],
+  "scripts": {
+    "dev:web": "npm run dev --prefix apps/web",
+    "dev:backend": "npm run dev --prefix apps/backend",
+    "dev": "concurrently \"npm run dev:web\" \"npm run dev:backend\""
+  },
+  "devDependencies": {
+    "@types/react-router-dom": "^5.3.3",
+    "concurrently": "^9.2.1",
+    "tsx": "^4.21.0"
+  },
   "dependencies": {
-    "dotenv": "^17.3.1",
-    "express": "^5.2.1",
-    "pg": "^8.20.0",
-    "pg-hstore": "^2.3.4",
-    "sequelize": "^6.37.7"
+    "lucide-react": "^0.575.0",
+    "react-router-dom": "^7.13.1"
   }
 }
