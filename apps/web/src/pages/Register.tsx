@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
 type AccountType = "interviewer" | "interviewee";
@@ -54,14 +54,26 @@ export default function Register() {
   const [submitError, setSubmitError] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const steps = useMemo(
-    () => [
+  const steps = useMemo(() => {
+    if (accountType === "interviewee") {
+      return [
+        { n: 1, label: "Account Type" as const },
+        { n: 2, label: "Profile" as const },
+      ];
+    }
+
+    return [
       { n: 1, label: "Account Type" as const },
       { n: 2, label: "Profile" as const },
       { n: 3, label: "Organization" as const },
-    ],
-    []
-  );
+    ];
+  }, [accountType]);
+
+  useEffect(() => {
+    if (accountType === "interviewee" && step > 2) {
+      setStep(2);
+    }
+  }, [accountType, step]);
 
   function clearErrors() {
     setErrors({});
@@ -109,55 +121,37 @@ export default function Register() {
     return Object.keys(next).length === 0;
   }
 
-  function goNext() {
-    clearErrors();
-
-    if (step === 1) {
-      setStep(2);
-      return;
-    }
-
-    if (step === 2) {
-      if (!validateProfile()) return;
-      setStep(3);
-      return;
-    }
-  }
-
-  function goBack() {
-    clearErrors();
-    setStep((s) => (s === 1 ? 1 : ((s - 1) as 1 | 2 | 3)));
-  }
-
-  async function onComplete(e: React.FormEvent) {
-    e.preventDefault();
-    clearErrors();
-
-    const okProfile = validateProfile();
-    const okOrg = validateOrg();
-    if (!okProfile || !okOrg) return;
-
+  async function submitRegistration() {
     setIsSubmitting(true);
     setSubmitError("");
 
     try {
-      const payload = {
-        accountType,
-        profile: {
-          firstName: profile.firstName.trim(),
-          lastName: profile.lastName.trim(),
-          email: profile.email.trim(),
-          password: profile.password,
-        },
-        organization: {
-          name: org.organizationName.trim(),
-          size: org.organizationSize.trim(),
-          industry: org.industry.trim(),
-        },
-      };
+      const payload =
+        accountType === "interviewee"
+          ? {
+              accountType,
+              profile: {
+                firstName: profile.firstName.trim(),
+                lastName: profile.lastName.trim(),
+                email: profile.email.trim(),
+                password: profile.password,
+              },
+            }
+          : {
+              accountType,
+              profile: {
+                firstName: profile.firstName.trim(),
+                lastName: profile.lastName.trim(),
+                email: profile.email.trim(),
+                password: profile.password,
+              },
+              organization: {
+                name: org.organizationName.trim(),
+                size: org.organizationSize.trim(),
+                industry: org.industry.trim(),
+              },
+            };
 
-      // Since your app is running on http://localhost:3000,
-      // this hits http://localhost:3000/api/register automatically.
       const res = await fetch("/api/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -170,20 +164,53 @@ export default function Register() {
           const data = await res.json();
           if (typeof data?.message === "string") msg = data.message;
         } catch {
-          // ignore JSON parse errors
+          // ignore
         }
         setSubmitError(msg);
         return;
       }
 
-      // If your app should route somewhere after registration:
-      // navigate("/dashboard");
-      navigate("/"); // safe default (or change to /dashboard)
+      navigate("/");
     } catch (err: any) {
       setSubmitError(err?.message ?? "Network error. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
+  }
+
+  async function goNext() {
+    clearErrors();
+
+    if (step === 1) {
+      setStep(2);
+      return;
+    }
+
+    if (step === 2) {
+      if (!validateProfile()) return;
+
+      if (accountType === "interviewee") {
+        await submitRegistration();
+        return;
+      }
+
+      setStep(3);
+    }
+  }
+
+  function goBack() {
+    clearErrors();
+    setStep((s) => (s === 1 ? 1 : ((s - 1) as 1 | 2 | 3)));
+  }
+
+  async function onComplete(e: React.FormEvent) {
+    e.preventDefault();
+    clearErrors();
+
+    if (!validateProfile()) return;
+    if (!validateOrg()) return;
+
+    await submitRegistration();
   }
 
   return (
@@ -326,11 +353,11 @@ export default function Register() {
                   onClick={() => setAccountType("interviewee")}
                  className={cx(
                     "w-full rounded-xl p-4 text-left transition",
-                    accountType === "interviewer" ? "ring-2 ring-[#155DFC]" : ""
+                    accountType === "interviewee" ? "ring-2 ring-[#155DFC]" : ""
                  )}
                     style={{
-                    border: `1px solid ${accountType === "interviewer" ? COLORS.blue : COLORS.lightBorder}`,
-                    backgroundColor: accountType === "interviewer" ? "rgba(21,93,252,0.08)" : "white",
+                    border: `1px solid ${accountType === "interviewee" ? COLORS.blue : COLORS.lightBorder}`,
+                    backgroundColor: accountType === "interviewee" ? "rgba(21,93,252,0.08)" : "white",
                  }}
                 >
                   <div className="flex items-start gap-3">
@@ -362,7 +389,7 @@ export default function Register() {
                     </div>
                   </div>
                 </button>
-
+                
                 <button
                   type="button"
                   onClick={goNext}
@@ -384,9 +411,9 @@ export default function Register() {
 
           {step === 2 && (
             <form
-              onSubmit={(e) => {
+              onSubmit={async (e) => {
                 e.preventDefault();
-                goNext();
+                await goNext();
               }}
               noValidate
             >
