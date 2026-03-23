@@ -1,0 +1,27 @@
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: mysql
+    restart: unless-stopped
+
+    ports:
+      - "3306:3306"
+
+    environment:
+      # REQUIRED
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-change_me_root}
+
+      # OPTIONAL (creates a DB + user on first start)
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-appdb}
+      MYSQL_USER: ${MYSQL_USER:-appuser}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-change_me_user}
+
+      TZ: ${TZ:-UTC}
+
+    volumes:
+      - mysql_data:/var/lib/mysql
+      # Optional: put *.sql or *.sh init scripts here (runs only on first init)
+      # - ./mysql-init:/docker-entrypoint-initdb.d:ro
+
+volumes:
+  mysql_data:

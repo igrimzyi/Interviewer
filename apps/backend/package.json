@@ -12,11 +12,11 @@
     "test": "echo \"No tests yet\""
   },
   "dependencies": {
-    "dotenv": "^17.3.1",
+    "bcryptjs": "^3.0.2",
+    "dotenv": "^17.2.3",
     "express": "^5.2.1",
-    "pg": "^8.20.0",
-    "pg-hstore": "^2.3.4",
-    "sequelize": "^6.37.8"
+    "mysql2": "^3.15.3",
+    "sequelize": "^6.37.7"
   },
   "devDependencies": {
     "@types/express": "^5.0.6",

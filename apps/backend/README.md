@@ -12,3 +12,18 @@ Minimal Express service for the POS monorepo.
 
 See `.env.example` for expected variables.
 
+## Signup API
+
+- Endpoint: `POST /auth/signup`
+- Body:
+
+```json
+{
+  "name": "Jane Doe",
+  "email": "jane@example.com",
+  "password": "strongpass123"
+}
+```
+
+- Success response: `201 Created`
+- Conflict response for duplicate email: `409 Conflict`
