@@ -72,6 +72,11 @@ export async function signUp(
       return res.status(400).json({ message: error.message });
     }
 
+    // eslint-disable-next-line no-console
+    console.error(
+      "Signup failed:",
+      error instanceof Error ? error.stack ?? error.message : error,
+    );
     return res.status(500).json({ message: "Failed to create user" });
   }
 }
@@ -90,6 +95,11 @@ export async function login(
     const data = await authService.login(req.body as LoginBody);
     return res.status(200).json(data);
   } catch (error) {
+    // eslint-disable-next-line no-console
+    console.error(
+      "Login failed:",
+      error instanceof Error ? error.stack ?? error.message : error,
+    );
     if (
       error instanceof Error &&
       error.message === "Invalid email or password"

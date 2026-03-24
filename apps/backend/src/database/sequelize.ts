@@ -15,5 +15,6 @@ export const sequelize = new Sequelize(
 
 export async function initializeDatabase(): Promise<void> {
   await sequelize.authenticate();
-  await sequelize.sync();
+  // Keep schema aligned with model changes during development.
+  await sequelize.sync({ alter: true });
 }

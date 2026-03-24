@@ -10,13 +10,14 @@ type UserAttributes = {
   passwordHash: string;
   role: UserRole;
   organizationId: number | null;
+  organizationName: string | null;
   createdAt: Date;
   updatedAt: Date;
 };
 
 type UserCreationAttributes = Optional<
   UserAttributes,
-  "id" | "organizationId" | "createdAt" | "updatedAt"
+  "id" | "organizationId" | "organizationName" | "createdAt" | "updatedAt"
 >;
 
 export class User
@@ -29,6 +30,7 @@ export class User
   declare passwordHash: string;
   declare role: UserRole;
   declare organizationId: number | null;
+  declare organizationName: string | null;
   declare createdAt: Date;
   declare updatedAt: Date;
 }
@@ -69,6 +71,10 @@ User.init(
       },
       onUpdate: "CASCADE",
       onDelete: "SET NULL",
+    },
+    organizationName: {
+      type: DataTypes.STRING(150),
+      allowNull: true,
     },
     createdAt: DataTypes.DATE,
     updatedAt: DataTypes.DATE,

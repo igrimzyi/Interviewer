@@ -29,5 +29,7 @@ export type LoginResponse = {
   email: string;
   role: UserRole;
   organizationId: number | null;
+  organizationName: string | null;
   createdAt: string;
+  token: string;
 };
