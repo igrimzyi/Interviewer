@@ -1,18 +1,18 @@
 import { Router } from "express";
 import { getHealth } from "./modules/health/health.controller";
+import { register, login } from "./modules/auth/auth.controller.js";
+import { requireAuth, AuthRequest } from "./middlewares/auth.js";
+import { Response } from "express";
 
 const router: Router = Router();
 
 router.get("/health", getHealth);
 
-// TEMP register endpoint
-router.post("/api/register", async (req, res) => {
-  // For now: just echo back what the frontend sent
-  // Later: create user in DB, hash password, etc.
-  return res.status(201).json({
-    message: "Registered (stub)",
-    received: req.body,
-  });
+router.post("/api/register", register);
+router.post("/api/login", login);
+
+router.get("/api/me", requireAuth, (req: AuthRequest, res: Response) => {
+  res.json({ user: req.user });
 });
 
 export default router;

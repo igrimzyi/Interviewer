@@ -1,5 +1,6 @@
 import React, { useMemo, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 type AccountType = "interviewer" | "interviewee";
 
@@ -32,6 +33,7 @@ function cx(...classes: Array<string | false | undefined | null>) {
 
 export default function Register() {
   const navigate = useNavigate();
+  const { signIn } = useAuth();
 
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [accountType, setAccountType] = useState<AccountType>("interviewer");
@@ -170,7 +172,9 @@ export default function Register() {
         return;
       }
 
-      navigate("/");
+      const data = await res.json();
+      signIn(data.token, data.user);
+      navigate("/dashboard");
     } catch (err: any) {
       setSubmitError(err?.message ?? "Network error. Please try again.");
     } finally {
@@ -523,15 +527,37 @@ export default function Register() {
               </div>
 
               <div className="mt-4">
-                <Field
-                  label="Organization Size"
+                <label htmlFor="organizationSize" className="block text-sm font-medium" style={{ color: COLORS.black }}>
+                  Organization Size
+                </label>
+                <select
+                  id="organizationSize"
                   name="organizationSize"
                   value={org.organizationSize}
-                  onChange={(v) => setOrg((o) => ({ ...o, organizationSize: v }))}
+                  onChange={(e) => setOrg((o) => ({ ...o, organizationSize: e.target.value }))}
                   required
-                  placeholder="1-10, 11-50, 51-200, etc."
-                  error={errors.organizationSize}
-                />
+                  className="mt-2 w-full rounded-xl px-3 py-3 text-sm outline-none"
+                  style={{
+                    border: `1px solid ${errors.organizationSize ? "#EF4444" : COLORS.lightBorder}`,
+                    backgroundColor: "#F8FAFC",
+                    color: org.organizationSize ? COLORS.black : "#9CA3AF",
+                  }}
+                  aria-invalid={Boolean(errors.organizationSize)}
+                  aria-describedby={errors.organizationSize ? "organizationSize-error" : undefined}
+                >
+                  <option value="" disabled>Select size…</option>
+                  <option value="1-10">1–10</option>
+                  <option value="11-50">11–50</option>
+                  <option value="51-200">51–200</option>
+                  <option value="201-500">201–500</option>
+                  <option value="501-1000">501–1000</option>
+                  <option value="1000+">1000+</option>
+                </select>
+                {errors.organizationSize && (
+                  <div id="organizationSize-error" className="mt-2 text-sm" style={{ color: "#B91C1C" }}>
+                    {errors.organizationSize}
+                  </div>
+                )}
               </div>
 
               <div className="mt-4">
