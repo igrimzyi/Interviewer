@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import LoggedInNavbar from "../components/LoggedInNavbar";
 import {
   Plus,
@@ -93,6 +94,7 @@ const mockActivities: Activity[] = [
 ];
 
 const Dashboard: React.FC = () => {
+  const navigate = useNavigate();
   const [interviews, setInterviews] = useState<Interview[]>([]);
   const [activities, setActivities] = useState<Activity[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -153,13 +155,16 @@ const Dashboard: React.FC = () => {
               }}
             >
               {[
-                { title: "New Interview", subtitle: "Schedule session", icon: <Plus size={20} />, color: "#2563EB" },
+                { title: "New Interview", subtitle: "Schedule session", icon: <Plus size={20} />, color: "#2563EB", route: "/session/create" },
                 { title: "Invite Team", subtitle: "Add interviewers", icon: <Users size={20} />, color: "#7C3AED" },
                 { title: "Question Bank", subtitle: "Browse questions", icon: <FileCode size={20} />, color: "#16A34A" },
                 { title: "Calendar", subtitle: "View schedule", icon: <Calendar size={20} />, color: "#EA580C" },
               ].map((card, i) => (
                 <div
                   key={i}
+                  onClick={() => {
+                    if (card.route) navigate(card.route);
+                  }}
                   style={{
                     background: "white",
                     padding: 20,
@@ -169,6 +174,7 @@ const Dashboard: React.FC = () => {
                     alignItems: "center",
                     gap: 16,
                     boxShadow: "0 2px 6px rgba(15,23,43,0.04)",
+                    cursor: card.route ? "pointer" : "default",
                   }}
                 >
                   <div
