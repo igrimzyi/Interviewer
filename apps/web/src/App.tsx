@@ -18,7 +18,7 @@ function App() {
           <Route path="/register" element={<Register />} />
           <Route path="/login" element={<LoginPage />} />
 
-          {/* ✅ PROTECTED DASHBOARD */}
+          {/* ✅DASHBOARD */}
           <Route
             path="/dashboard"
             element={
@@ -28,7 +28,7 @@ function App() {
             }
           />
 
-          {/* ✅ YOUR NEW ROUTE (also protected) */}
+          {/* ✅NEW ROUTE*/}
           <Route
             path="/session/create"
             element={
