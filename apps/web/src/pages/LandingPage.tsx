@@ -15,7 +15,8 @@ type Card = {
 
 export default function LandingPage() {
 
-    {/*The data of the features containers*/}
+
+    {/*The data of the features containers*/ }
     const features: Card[] = [
         {
             icon: CodeXml,
@@ -34,7 +35,7 @@ export default function LandingPage() {
         }
     ]
 
-    {/*The data of the steps container*/}
+    {/*The data of the steps container*/ }
     const steps: Card[] = [
         {
             icon: Calendar,
@@ -86,12 +87,12 @@ export default function LandingPage() {
                         <div className="flex items-center pr-48  py-4 gap-4">
                             <Link className="text-xs bg-text-primary text-white  flex justify-center items-center gap-1 font-semibold rounded-md w-32 h-8 py-2 px-2 hover:opacity-90 transition-colors duration-300" to="/login">
                                 Get Started <ArrowRight className="size-4" /></Link>
-                            <Link className="text-xs bg-white text-text-primary  flex justify-center items-center gap-1 font-semibold rounded-md w-32 h-8 py-2 px-2 hover:opacity-90 transition-colors duration-300" to="/demo">
-                                <CirclePlay className="size-4" />Watch Demo</Link>
+
+                            {/*Play button*/}
+                            <button className="text-xs bg-white text-text-primary  flex justify-center items-center gap-1 font-semibold rounded-md w-32 h-8 py-2 px-2 hover:opacity-90 transition-colors duration-300 cursor-pointer">
+                                <CirclePlay className="size-4" />Watch Demo
+                            </button>
                         </div>
-
-
-
                     </div>
 
                     {/*Image container*/}
@@ -110,7 +111,7 @@ export default function LandingPage() {
 
 
             {/* {Features Section} */}
-            <section>
+            <section id="features">
 
                 <div className="flex flex-col items-center justify-center py-8">
                     <h2 className={`${mainHeadingStyle}`}>Everything you need to conduct technical interviews</h2>
