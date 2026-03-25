@@ -6,8 +6,6 @@ import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
 import LoginPage from "./pages/LoginPage.tsx";
 import Session from "./pages/Session";
-
-// ✅ FROM TEAM (KEEP)
 import { AuthProvider } from "./context/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
 
