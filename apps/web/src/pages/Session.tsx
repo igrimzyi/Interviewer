@@ -1,6 +1,8 @@
+import { useState } from "react";
 import LoggedInNavbar from "../components/LoggedInNavbar";
 import { ArrowLeft, Calendar, FileText } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 const colors = {
   black: "#0F172B",
@@ -12,15 +14,83 @@ const labelClass = "text-xs font-medium text-[#0F172B]";
 const inputClass =
   "mt-1 w-full rounded-md border border-[#E2E8F0] bg-gray-50 px-3 py-2 text-sm outline-none focus:bg-white focus:ring-2 focus:ring-[#155DFC]/30";
 
+type FormState = {
+  candidateName: string;
+  candidateEmail: string;
+  position: string;
+  date: string;
+  time: string;
+  notes: string;
+};
+
 export default function Session() {
   const navigate = useNavigate();
+  const { token } = useAuth();
+
+  const [form, setForm] = useState<FormState>({
+    candidateName: "",
+    candidateEmail: "",
+    position: "",
+    date: "",
+    time: "",
+    notes: "",
+  });
+
+  const [error, setError] = useState<string>("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  function set(field: keyof FormState, value: string) {
+    setForm((prev) => ({ ...prev, [field]: value }));
+    setError("");
+  }
+
+  async function handleSubmit() {
+    if (!form.position || !form.date || !form.time) {
+      setError("Position, date, and time are required.");
+      return;
+    }
+
+    setIsSubmitting(true);
+    setError("");
+
+    try {
+      const res = await fetch("/api/sessions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          candidateName: form.candidateName,
+          candidateEmail: form.candidateEmail,
+          position: form.position,
+          date: form.date,
+          time: form.time,
+          notes: form.notes,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.message ?? "Failed to create session.");
+        return;
+      }
+
+      navigate("/dashboard");
+    } catch {
+      setError("Network error. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
 
   return (
     <div style={{ minHeight: "100vh", background: "#F8FAFC" }}>
       <LoggedInNavbar />
 
       <div style={{ maxWidth: 900, margin: "0 auto", padding: "32px 20px" }}>
-        
+
         {/* BACK */}
         <div
           onClick={() => navigate("/dashboard")}
@@ -70,19 +140,34 @@ export default function Session() {
 
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
             <div>
-              <label className={labelClass}>Full Name *</label>
-              <input className={inputClass} placeholder="e.g., Alex Johnson" />
+              <label className={labelClass}>Full Name</label>
+              <input
+                className={inputClass}
+                placeholder="e.g., Alex Johnson"
+                value={form.candidateName}
+                onChange={(e) => set("candidateName", e.target.value)}
+              />
             </div>
 
             <div>
-              <label className={labelClass}>Email Address *</label>
-              <input className={inputClass} placeholder="e.g., alex.johnson@email.com" />
+              <label className={labelClass}>Email Address</label>
+              <input
+                className={inputClass}
+                type="email"
+                placeholder="e.g., alex.johnson@email.com"
+                value={form.candidateEmail}
+                onChange={(e) => set("candidateEmail", e.target.value)}
+              />
             </div>
           </div>
 
           <div style={{ marginTop: 12 }}>
             <label className={labelClass}>Position *</label>
-            <select className={inputClass}>
+            <select
+              className={inputClass}
+              value={form.position}
+              onChange={(e) => set("position", e.target.value)}
+            >
               <option value="">Select position</option>
               <option value="Technical Lead">Technical Lead</option>
               <option value="Project Manager">Project Manager</option>
@@ -120,12 +205,22 @@ export default function Session() {
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
             <div>
               <label className={labelClass}>Date *</label>
-              <input type="date" className={inputClass} />
+              <input
+                type="date"
+                className={inputClass}
+                value={form.date}
+                onChange={(e) => set("date", e.target.value)}
+              />
             </div>
 
             <div>
               <label className={labelClass}>Time *</label>
-              <input type="time" className={inputClass} />
+              <input
+                type="time"
+                className={inputClass}
+                value={form.time}
+                onChange={(e) => set("time", e.target.value)}
+              />
             </div>
 
             <div>
@@ -174,9 +269,7 @@ export default function Session() {
               }}
             >
               <div style={{ fontWeight: 500 }}>{item.title}</div>
-              <div style={{ fontSize: 13, color: colors.charcoal }}>
-                {item.count}
-              </div>
+              <div style={{ fontSize: 13, color: colors.charcoal }}>{item.count}</div>
             </div>
           ))}
         </div>
@@ -193,9 +286,7 @@ export default function Session() {
             marginBottom: 20,
           }}
         >
-          <div style={{ fontWeight: 500, marginBottom: 10 }}>
-            Additional Notes
-          </div>
+          <div style={{ fontWeight: 500, marginBottom: 10 }}>Additional Notes</div>
 
           <p style={{ fontSize: 13, color: colors.charcoal, marginBottom: 10 }}>
             Optional notes or instructions (optional)
@@ -205,8 +296,16 @@ export default function Session() {
             className={inputClass}
             placeholder="Add any special instructions or notes about this interview..."
             rows={3}
+            value={form.notes}
+            onChange={(e) => set("notes", e.target.value)}
           />
         </div>
+
+        {error && (
+          <p style={{ color: "#B91C1C", fontSize: 14, marginBottom: 12, textAlign: "right" }}>
+            {error}
+          </p>
+        )}
 
         {/* =========================
             ACTIONS
@@ -214,6 +313,7 @@ export default function Session() {
         <div style={{ display: "flex", justifyContent: "flex-end", gap: 12 }}>
           <button
             onClick={() => navigate("/dashboard")}
+            disabled={isSubmitting}
             style={{
               padding: "10px 16px",
               borderRadius: 8,
@@ -226,16 +326,18 @@ export default function Session() {
           </button>
 
           <button
+            onClick={handleSubmit}
+            disabled={isSubmitting}
             style={{
               padding: "10px 18px",
               borderRadius: 8,
-              background: "#6B7280",
+              background: isSubmitting ? "#9CA3AF" : "#0F172B",
               color: "white",
               border: "none",
-              cursor: "pointer",
+              cursor: isSubmitting ? "not-allowed" : "pointer",
             }}
           >
-            Create Interview Session
+            {isSubmitting ? "Creating..." : "Create Interview Session"}
           </button>
         </div>
       </div>

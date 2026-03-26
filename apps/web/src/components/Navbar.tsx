@@ -38,7 +38,7 @@ export default function Navbar() {
                         <Link to="/login"
                             className="text-xs px-4 py-2 flex items-center justify-center hover:bg-slate-400 rounded-md transition-colors duration-300 w-24 h-8">
                             Sign In</Link>
-                        <Link to="/signup"
+                        <Link to="/register"
                             className={`${buttonStyles} text-xs text-white bg-text-primary w-24 h-8`}>
                             Get Started</Link>
                     </div>

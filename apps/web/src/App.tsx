@@ -6,6 +6,7 @@ import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
 import LoginPage from "./pages/LoginPage.tsx";
 import Session from "./pages/Session";
+import Editor from "./pages/Editor";
 import { AuthProvider } from "./context/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
 
@@ -34,6 +35,16 @@ function App() {
             element={
               <ProtectedRoute>
                 <Session />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* ✅EDITOR */}
+          <Route
+            path="/editor/:sessionCode"
+            element={
+              <ProtectedRoute>
+                <Editor />
               </ProtectedRoute>
             }
           />
