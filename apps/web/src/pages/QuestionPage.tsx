@@ -1,4 +1,5 @@
 import { useState } from "react";
+import type { CSSProperties } from "react";
 import LoggedInNavbar from "../components/LoggedInNavbar";
 import { ArrowLeft, FileText} from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -154,7 +155,7 @@ export default function QuestionPage() {
         return;
       }
 
-      navigate("/dashboard");
+      navigate("/questions");
     } catch {
       setError("Network error. Please try again.");
     } finally {
@@ -176,7 +177,7 @@ export default function QuestionPage() {
       borderRadius: 8,
       cursor: "pointer",
       transition: "all 0.15s",
-    } as React.CSSProperties;
+    } as CSSProperties;
   }
 
   // Render
@@ -188,7 +189,7 @@ export default function QuestionPage() {
 
         {/* Back */}
         <div
-          onClick={() => navigate("/dashboard")}
+          onClick={() => navigate("/questions")}
           style={{
             display: "flex",
             alignItems: "center",
@@ -200,7 +201,7 @@ export default function QuestionPage() {
           }}
         >
           <ArrowLeft size={16} />
-          Back to Dashboard
+          Back to Question Bank
         </div>
 
         {/* Header */}
@@ -519,7 +520,7 @@ export default function QuestionPage() {
 
           <div style={{ display: "flex", gap: 12 }}>
             <button
-              onClick={() => navigate("/dashboard")}
+              onClick={() => navigate("/questions")}
               disabled={isSubmitting}
               style={{
                 padding: "10px 16px",

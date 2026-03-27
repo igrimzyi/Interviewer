@@ -191,7 +191,7 @@ const Dashboard: React.FC = () => {
               {[
                 { title: "New Interview", subtitle: "Schedule session", icon: <Plus size={20} />, color: "#2563EB", route: "/session/create" },
                 { title: "Invite Team", subtitle: "Add interviewers", icon: <Users size={20} />, color: "#7C3AED" },
-                { title: "Question Bank", subtitle: "Browse questions", icon: <FileCode size={20} />, color: "#16A34A" },
+                { title: "Question Bank", subtitle: "Browse questions", icon: <FileCode size={20} />, color: "#16A34A", route: "/questions" },
                 { title: "Calendar", subtitle: "View schedule", icon: <Calendar size={20} />, color: "#EA580C" },
               ].map((card, i) => (
                 <div

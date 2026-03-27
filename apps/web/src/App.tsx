@@ -9,7 +9,8 @@ import Session from "./pages/Session";
 import Editor from "./pages/Editor";
 import { AuthProvider } from "./context/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
-import QuestionPage from "./pages/QuestionPage"
+import QuestionPage from "./pages/QuestionPage";
+import QuestionBank from "./pages/QuestionBank";
 
 function App() {
   return (
@@ -56,6 +57,15 @@ function App() {
             element={
               <ProtectedRoute>
                 <QuestionPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/questions"
+            element={
+              <ProtectedRoute>
+                <QuestionBank />
               </ProtectedRoute>
             }
           />
