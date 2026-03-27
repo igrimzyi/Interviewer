@@ -5,6 +5,7 @@ import LandingPage from "./pages/LandingPage.tsx";
 import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
 import LoginPage from "./pages/LoginPage.tsx";
+import JoinSession from "./pages/JoinSession.tsx"
 import Session from "./pages/Session";
 import Editor from "./pages/Editor";
 import { AuthProvider } from "./context/AuthContext";
@@ -20,6 +21,7 @@ function App() {
           <Route path="/" element={<><Navbar /> <LandingPage /></>} />
           <Route path="/register" element={<Register />} />
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/session/join/:id" element={<JoinSession/>}/>
 
           {/* ✅DASHBOARD */}
           <Route

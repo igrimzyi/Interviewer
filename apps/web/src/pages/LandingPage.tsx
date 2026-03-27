@@ -2,10 +2,6 @@ import { Link } from "react-router-dom"
 import { CodeXml, Users, ChartColumn, Calendar, Send, Video, CircleCheckBig, ArrowRight, type LucideIcon } from "lucide-react"
 
 
-/*TODO:
-    -Make links move across sections of the page and other pages.
-*/
-
 
 type Card = {
     icon: LucideIcon;
