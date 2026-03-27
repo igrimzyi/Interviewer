@@ -21,6 +21,33 @@ interface EditorSession {
 // In-memory store: sessionCode → editor state + connected clients
 const sessions = new Map<string, EditorSession>();
 
+function getUniqueUsers(session: EditorSession) {
+  const uniqueUsers = new Map<string, { userId: string; name: string }>();
+
+  for (const client of session.clients) {
+    if (!uniqueUsers.has(client.userId)) {
+      uniqueUsers.set(client.userId, {
+        userId: client.userId,
+        name: client.name,
+      });
+    }
+  }
+
+  return Array.from(uniqueUsers.values());
+}
+
+function getConnectionCountForUser(session: EditorSession, userId: string) {
+  let count = 0;
+
+  for (const client of session.clients) {
+    if (client.userId === userId) {
+      count += 1;
+    }
+  }
+
+  return count;
+}
+
 function broadcast(session: EditorSession, message: object, exclude?: WebSocket) {
   const payload = JSON.stringify(message);
   for (const client of session.clients) {
@@ -88,14 +115,13 @@ export function attachEditorWS(server: Server) {
       type: 'init',
       code: session.code,
       language: session.language,
-      users: Array.from(session.clients).map((c) => ({
-        userId: c.userId,
-        name: c.name,
-      })),
+      users: getUniqueUsers(session),
     });
 
-    // Tell everyone else a new user joined
-    broadcast(session, { type: 'user_joined', userId, name }, ws);
+    // Only announce a join when this is the user's first open tab/window in the session.
+    if (getConnectionCountForUser(session, userId) === 1) {
+      broadcast(session, { type: 'user_joined', userId, name }, ws);
+    }
 
     ws.on('message', (raw) => {
       let msg: { type: string; value?: string };
@@ -116,7 +142,12 @@ export function attachEditorWS(server: Server) {
 
     ws.on('close', () => {
       session.clients.delete(client);
-      broadcast(session, { type: 'user_left', userId, name });
+
+      // Only announce a leave when the user's last tab/window closes.
+      if (getConnectionCountForUser(session, userId) === 0) {
+        broadcast(session, { type: 'user_left', userId, name });
+      }
+
       // Clean up empty sessions after a delay
       if (session.clients.size === 0) {
         setTimeout(() => {
@@ -129,6 +160,10 @@ export function attachEditorWS(server: Server) {
 
     ws.on('error', () => {
       session.clients.delete(client);
+
+      if (getConnectionCountForUser(session, userId) === 0) {
+        broadcast(session, { type: 'user_left', userId, name });
+      }
     });
   });
 

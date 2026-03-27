@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import LoggedInNavbar from "../components/LoggedInNavbar";
 import { ArrowLeft, Calendar, FileText } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -20,7 +20,17 @@ type FormState = {
   position: string;
   date: string;
   time: string;
+  questionId: string;
   notes: string;
+};
+
+type QuestionOption = {
+  id: string;
+  title: string;
+  difficulty: "easy" | "medium" | "hard";
+  category: string;
+  description: string;
+  testCaseCount: number;
 };
 
 export default function Session() {
@@ -33,11 +43,43 @@ export default function Session() {
     position: "",
     date: "",
     time: "",
+    questionId: "",
     notes: "",
   });
 
+  const [questions, setQuestions] = useState<QuestionOption[]>([]);
+  const [questionsLoading, setQuestionsLoading] = useState(true);
   const [error, setError] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    async function loadQuestions() {
+      try {
+        const res = await fetch("/api/questions", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          setError(data.message ?? "Failed to load questions.");
+          return;
+        }
+
+        setQuestions(data);
+      } catch {
+        setError("Unable to load questions.");
+      } finally {
+        setQuestionsLoading(false);
+      }
+    }
+
+    if (token) {
+      loadQuestions();
+    }
+  }, [token]);
 
   function set(field: keyof FormState, value: string) {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -45,8 +87,8 @@ export default function Session() {
   }
 
   async function handleSubmit() {
-    if (!form.position || !form.date || !form.time) {
-      setError("Position, date, and time are required.");
+    if (!form.position || !form.date || !form.time || !form.questionId) {
+      setError("Position, date, time, and question are required.");
       return;
     }
 
@@ -66,6 +108,7 @@ export default function Session() {
           position: form.position,
           date: form.date,
           time: form.time,
+          questionId: form.questionId,
           notes: form.notes,
         }),
       });
@@ -252,26 +295,78 @@ export default function Session() {
             Choose the questions for this interview
           </p>
 
-          {[
-            { title: "Frontend Basics", count: "5 questions" },
-            { title: "Data Structures & Algorithms", count: "8 questions" },
-            { title: "System Design", count: "4 questions" },
-            { title: "Backend & APIs", count: "6 questions" },
-          ].map((item, i) => (
-            <div
-              key={i}
-              style={{
-                border: `1px solid ${colors.lightGray}`,
-                borderRadius: 12,
-                padding: 14,
-                marginBottom: 10,
-                cursor: "pointer",
-              }}
-            >
-              <div style={{ fontWeight: 500 }}>{item.title}</div>
-              <div style={{ fontSize: 13, color: colors.charcoal }}>{item.count}</div>
+          {questionsLoading ? (
+            <div style={{ color: colors.charcoal, fontSize: 14 }}>Loading questions...</div>
+          ) : questions.length === 0 ? (
+            <div style={{ color: colors.charcoal, fontSize: 14 }}>
+              No questions found yet. Run the question seed script or create a question first.
             </div>
-          ))}
+          ) : (
+            questions.map((question) => {
+              const isSelected = form.questionId === question.id;
+
+              return (
+                <button
+                  key={question.id}
+                  type="button"
+                  onClick={() => set("questionId", question.id)}
+                  style={{
+                    width: "100%",
+                    textAlign: "left",
+                    border: isSelected ? "1px solid #155DFC" : `1px solid ${colors.lightGray}`,
+                    borderRadius: 12,
+                    padding: 14,
+                    marginBottom: 10,
+                    cursor: "pointer",
+                    background: isSelected ? "#EFF6FF" : "#FFFFFF",
+                    boxShadow: isSelected ? "0 0 0 2px rgba(21,93,252,0.08)" : "none",
+                  }}
+                >
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      gap: 12,
+                      marginBottom: 6,
+                    }}
+                  >
+                    <div style={{ fontWeight: 500 }}>{question.title}</div>
+                    <span
+                      style={{
+                        fontSize: 12,
+                        textTransform: "capitalize",
+                        padding: "4px 8px",
+                        borderRadius: 999,
+                        background:
+                          question.difficulty === "easy"
+                            ? "#DCFCE7"
+                            : question.difficulty === "medium"
+                              ? "#FEF3C7"
+                              : "#FEE2E2",
+                        color:
+                          question.difficulty === "easy"
+                            ? "#166534"
+                            : question.difficulty === "medium"
+                              ? "#92400E"
+                              : "#991B1B",
+                      }}
+                    >
+                      {question.difficulty}
+                    </span>
+                  </div>
+
+                  <div style={{ fontSize: 13, color: colors.charcoal, marginBottom: 6 }}>
+                    {question.category} • {question.testCaseCount} test cases
+                  </div>
+
+                  <div style={{ fontSize: 13, color: "#64748B", lineHeight: 1.5 }}>
+                    {question.description}
+                  </div>
+                </button>
+              );
+            })
+          )}
         </div>
 
         {/* =========================

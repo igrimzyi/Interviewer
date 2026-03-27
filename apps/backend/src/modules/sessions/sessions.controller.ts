@@ -1,6 +1,6 @@
 import { Response } from 'express';
 import { Op } from 'sequelize';
-import { Session, User } from '../../database/index.js';
+import { Question, Session, User } from '../../database/index.js';
 import { AuthRequest } from '../../middlewares/auth.js';
 
 function generateSessionCode(): string {
@@ -14,16 +14,27 @@ function generateSessionCode(): string {
 
 // POST /api/sessions
 export async function createSession(req: AuthRequest, res: Response) {
-  const { candidateEmail, position, date, time, notes } = req.body;
+  const { candidateEmail, position, date, time, notes, questionId } = req.body;
 
-  if (!position || !date || !time) {
-    return res.status(400).json({ message: 'Position, date, and time are required.' });
+  if (!position || !date || !time || !questionId) {
+    return res.status(400).json({ message: 'Position, date, time, and question are required.' });
   }
 
   try {
     const interviewer = await (User as any).findByPk(req.user!.userId);
     if (!interviewer) {
       return res.status(404).json({ message: 'Interviewer not found.' });
+    }
+
+    const question = await (Question as any).findOne({
+      where: {
+        id: questionId,
+        createdById: req.user!.userId,
+      },
+    });
+
+    if (!question) {
+      return res.status(404).json({ message: 'Selected question was not found.' });
     }
 
     let intervieweeId: string | null = null;
@@ -46,6 +57,7 @@ export async function createSession(req: AuthRequest, res: Response) {
       sessionCode,
       title: position,
       status: 'scheduled',
+      questionId,
       scheduledAt,
       interviewerId: req.user!.userId,
       intervieweeId,
@@ -68,6 +80,12 @@ export async function getMySessions(req: AuthRequest, res: Response) {
       where: { interviewerId: req.user!.userId },
       include: [
         {
+          model: Question,
+          as: 'question',
+          attributes: ['id', 'title', 'difficulty', 'category'],
+          required: false,
+        },
+        {
           model: User,
           as: 'interviewee',
           attributes: ['firstName', 'lastName', 'email'],
@@ -81,6 +99,61 @@ export async function getMySessions(req: AuthRequest, res: Response) {
   } catch (err) {
     console.error('getMySessions error:', err);
     return res.status(500).json({ message: 'Failed to fetch sessions.' });
+  }
+}
+
+// GET /api/sessions/:sessionCode
+export async function getSessionByCode(req: AuthRequest, res: Response) {
+  try {
+    const session = await (Session as any).findOne({
+      where: { sessionCode: req.params.sessionCode },
+      include: [
+        {
+          model: Question,
+          as: 'question',
+          attributes: [
+            'id',
+            'title',
+            'difficulty',
+            'category',
+            'description',
+            'constraints',
+            'examples',
+            'starterCode',
+            'suggestedTimeLimitMinutes',
+          ],
+          required: false,
+        },
+        {
+          model: User,
+          as: 'interviewee',
+          attributes: ['firstName', 'lastName', 'email'],
+          required: false,
+        },
+        {
+          model: User,
+          as: 'interviewer',
+          attributes: ['firstName', 'lastName', 'email'],
+          required: false,
+        },
+      ],
+    });
+
+    if (!session) {
+      return res.status(404).json({ message: 'Session not found.' });
+    }
+
+    const canAccess =
+      session.interviewerId === req.user!.userId || session.intervieweeId === req.user!.userId;
+
+    if (!canAccess) {
+      return res.status(403).json({ message: 'You do not have access to this session.' });
+    }
+
+    return res.json(session);
+  } catch (err) {
+    console.error('getSessionByCode error:', err);
+    return res.status(500).json({ message: 'Failed to fetch session.' });
   }
 }
 
