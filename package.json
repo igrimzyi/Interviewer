@@ -14,7 +14,11 @@
   "scripts": {
     "dev:web": "npm run dev --prefix apps/web",
     "dev:backend": "npm run dev --prefix apps/backend",
-    "dev": "concurrently \"npm run dev:web\" \"npm run dev:backend\""
+    "dev": "concurrently \"npm run dev:web\" \"npm run dev:backend\"",
+    "db:reset": "npm run db:reset --prefix apps/backend",
+    "seed:questions": "npm run seed:questions --prefix apps/backend",
+    "seed:dev": "npm run seed:dev --prefix apps/backend",
+    "setup:dev": "npm run seed:dev"
   },
   "devDependencies": {
     "@types/react-router-dom": "^5.3.3",

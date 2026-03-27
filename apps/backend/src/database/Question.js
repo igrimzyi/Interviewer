@@ -42,12 +42,12 @@ const Question = sequelize.define(
       },
     },
     examples: {
-      type: DataTypes.JSONB,
+      type: DataTypes.JSON,
       allowNull: true,
       defaultValue: [],
     },
     starterCode: {
-      type: DataTypes.JSONB,
+      type: DataTypes.JSON,
       allowNull: true,
       defaultValue: [],
     },

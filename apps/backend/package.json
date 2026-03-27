@@ -10,15 +10,16 @@
     "start": "node dist/index.js",
     "lint": "eslint \"src/**/*.ts\"",
     "test": "echo \"No tests yet\"",
-    "seed:questions": "node src/database/seedQuestions.js"
+    "db:reset": "node src/database/init.js",
+    "seed:questions": "node src/database/seedQuestions.js",
+    "seed:dev": "node src/database/seedDev.js"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",
     "dotenv": "^17.3.1",
     "express": "^5.2.1",
     "jsonwebtoken": "^9.0.3",
-    "pg": "^8.20.0",
-    "pg-hstore": "^2.3.4",
+    "mysql2": "^3.20.0",
     "sequelize": "^6.37.8",
     "ws": "^8.20.0"
   },

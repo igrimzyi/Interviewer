@@ -23,7 +23,6 @@ function App() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/session/join/:id" element={<JoinSession/>}/>
 
-          {/* ✅DASHBOARD */}
           <Route
             path="/dashboard"
             element={
@@ -33,7 +32,6 @@ function App() {
             }
           />
 
-          {/* ✅NEW ROUTE*/}
           <Route
             path="/session/create"
             element={
@@ -43,7 +41,6 @@ function App() {
             }
           />
 
-          {/* ✅EDITOR */}
           <Route
             path="/editor/:sessionCode"
             element={
@@ -53,7 +50,6 @@ function App() {
             }
           />
 
-          {/* QUESTION */}
           <Route
             path="/question/create"
             element={

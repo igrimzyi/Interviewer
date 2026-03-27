@@ -19,18 +19,18 @@ async function run() {
         createdById: interviewer.id,
       },
       defaults: {
-        difficulty: 'medium',
+        difficulty: 'easy',
         category: 'Data Structures & Algorithms',
         description:
-          'Given an array of integers nums and an integer target, return indices of the two numbers such that they add up to target. You may assume that each input would have exactly one solution, and you may not use the same element twice. You can return the answer in any order.',
+          'Given an array of integers nums and an integer target, return the indices of the two numbers that add up to the target.',
         constraints:
-          '2 <= nums.length <= 10^4\n-10^9 <= nums[i] <= 10^9\n-10^9 <= target <= 10^9\nOnly one valid answer exists.',
-        suggestedTimeLimitMinutes: 45,
+          '2 <= nums.length <= 10^4\n-10^9 <= nums[i] <= 10^9\nOnly one valid answer exists.',
+        suggestedTimeLimitMinutes: 30,
         examples: [
           {
             input: 'nums = [2,7,11,15], target = 9',
             output: '[0,1]',
-            explanation: 'Because nums[0] + nums[1] = 9, we return [0, 1].',
+            explanation: 'nums[0] + nums[1] equals the target.',
           },
           {
             input: 'nums = [3,2,4], target = 6',
@@ -40,7 +40,7 @@ async function run() {
         starterCode: [
           {
             language: 'javascript',
-            code: 'function twoSum(nums, target) {\n  // Write your solution here\n}\n',
+            code: 'function twoSum(nums, target) {\n  // return the matching indexes\n}\n',
           },
         ],
         createdById: interviewer.id,

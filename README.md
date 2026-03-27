@@ -17,39 +17,32 @@ In the root of the application run...
 
 ## Database Setup
 
-Before running the application you need PostgreSQL installed and a database created.
+Before running the application you need MySQL installed and a database created.
 
-### Step 1: Install PostgreSQL
+### Step 1: Install MySQL
 
 ```bash
-brew install postgresql@14
+brew install mysql
 ```
 
-### Step 2: Start the PostgreSQL service
+### Step 2: Start the MySQL service
 
 ```bash
-brew services start postgresql@14
+brew services start mysql
 ```
 
 Verify it is running:
 
 ```bash
-brew services list | grep postgres
+brew services list | grep mysql
 ```
 
-You should see `postgresql@14` with a status of `started`.
+You should see `mysql` with a status of `started`.
 
 ### Step 3: Create the database
 
 ```bash
-createdb interviewer
-```
-
-If you get a "role does not exist" error, create your user first:
-
-```bash
-createuser -s $(whoami)
-createdb interviewer
+mysql -u root -e "CREATE DATABASE IF NOT EXISTS interviewer;"
 ```
 
 ### Step 4: Configure environment variables
@@ -60,17 +53,43 @@ Copy the example env file and fill in your values:
 cp env.example .env
 ```
 
-Your `.env` should look like this (adjust if your Postgres user or password differs):
+Your `.env` should look like this (adjust if your MySQL user or password differs):
 
 ```
+DB_DIALECT=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
 DB_NAME=interviewer
-DB_USER=<your-db-username>
+DB_USER=root
 DB_PASSWORD=
-DB_HOST=localhost
 JWT_SECRET=change-me-in-production
 ```
 
-> **Note:** The database tables are created automatically when the backend starts for the first time via Sequelize's `sync()`.
+### Step 5: Seed a full dev environment
+
+Run:
+
+```bash
+npm run setup:dev
+```
+
+That command rebuilds the schema and seeds:
+
+- 1 organization
+- interviewer and interviewee accounts
+- 3 interview questions with test cases
+- 3 sample interview sessions
+
+Seeded credentials:
+
+- `interviewer@acme.dev` / `Password123!`
+- `candidate@acme.dev` / `Password123!`
+
+Sample join codes:
+
+- `DEV12345`
+- `PAIR6789`
+- `HIRED001`
 
 ---
 
