@@ -2,7 +2,15 @@ import { Link } from 'react-router-dom'
 import { buttonStyles } from '../styles/shared'
 import { Menu } from 'lucide-react'
 
+
 import { useState } from 'react'
+
+//Use 
+const scrollTo = (id: string) => {
+  const el = document.getElementById(id);
+  el?.scrollIntoView({ behavior: "smooth" });
+};
+
 
 export default function Navbar() {
     {
@@ -29,8 +37,8 @@ export default function Navbar() {
 
                     {/*Desktop Navigation*/}
                     <div className="hidden sm:flex items-center gap-4 text-text-secondary text-xs">
-                        <Link to="/features">Features</Link>
-                        <Link to="/how-it-works">How It Works</Link>
+                        <a className="cursor-pointer" onClick={() => scrollTo("features")} >Features</a>
+                        <a className="cursor-pointer" onClick={() => scrollTo("how-it-works")}>How It Works</a>
                         <Link to="/about">About</Link>
                     </div>
 
@@ -49,10 +57,10 @@ export default function Navbar() {
                     <div className="sm:hidden flex-col justify-between items-center pt-2 -mx-2">
                         <div className="grid grid-cols-1 place-items-center text-text-secondary text-xs">
                             <div className={`${mobileMenuStyle}`}>
-                                <Link to="/features">Features</Link>
+                                <a className="cursor-pointer" onClick={() => scrollTo("features")} >Features</a>                       
                             </div>
                             <div className={`${mobileMenuStyle}`}>
-                                <Link to="/how-it-works">How It Works</Link>
+                                <a className="cursor-pointer" onClick={() => scrollTo("how-it-works")}>How It Works</a>
                             </div>
                             <div className={`${mobileMenuStyle}`}>
                                 <Link to="/about">About</Link>
@@ -61,7 +69,7 @@ export default function Navbar() {
                                 <Link to="/login">Sign In</Link>
                             </div>
                             <div className={`${mobileMenuStyle}`}>
-                                <Link to="/signup">Get Started</Link>
+                                <Link to="/register">Get Started</Link>
                             </div>
 
 
