@@ -2,7 +2,7 @@ import { Router } from "express";
 import { getHealth } from "./modules/health/health.controller";
 import { register, login } from "./modules/auth/auth.controller.js";
 import { requireAuth, AuthRequest } from "./middlewares/auth.js";
-import { getMySessions, getMyActivity, createSession, getSessionByCode } from "./modules/sessions/sessions.controller.js";
+import { getMySessions, getMyActivity, createSession, getSessionByCode, getJoinSessionPreview } from "./modules/sessions/sessions.controller.js";
 import { Response } from "express";
 import { runJavaScript } from "./modules/code/code.controller.js";
 import { createQuestion, getQuestions } from "./modules/questions/questions.controller.js";
@@ -13,6 +13,7 @@ router.get("/health", getHealth);
 
 router.post("/api/register", register);
 router.post("/api/login", login);
+router.get("/api/sessions/join/:identifier", getJoinSessionPreview);
 
 router.get("/api/me", requireAuth, (req: AuthRequest, res: Response) => {
   res.json({ user: req.user });

@@ -157,6 +157,73 @@ export async function getSessionByCode(req: AuthRequest, res: Response) {
   }
 }
 
+// GET /api/sessions/join/:identifier
+export async function getJoinSessionPreview(req: AuthRequest, res: Response) {
+  try {
+    const identifier = req.params.identifier;
+    const session = await (Session as any).findOne({
+      where: {
+        [Op.or]: [{ id: identifier }, { sessionCode: identifier }],
+      },
+      include: [
+        {
+          model: Question,
+          as: 'question',
+          attributes: ['id', 'title', 'difficulty', 'suggestedTimeLimitMinutes'],
+          required: false,
+        },
+        {
+          model: User,
+          as: 'interviewer',
+          attributes: ['firstName', 'lastName', 'email'],
+          required: false,
+        },
+        {
+          association: 'organization',
+          attributes: ['id', 'name'],
+          required: false,
+        },
+      ],
+    });
+
+    if (!session) {
+      return res.status(404).json({ message: 'Session not found.' });
+    }
+
+    return res.json({
+      id: session.id,
+      sessionCode: session.sessionCode,
+      title: session.title,
+      status: session.status,
+      scheduledAt: session.scheduledAt,
+      interviewer: session.interviewer
+        ? {
+            firstName: session.interviewer.firstName,
+            lastName: session.interviewer.lastName,
+            email: session.interviewer.email,
+          }
+        : null,
+      organization: session.organization
+        ? {
+            id: session.organization.id,
+            name: session.organization.name,
+          }
+        : null,
+      question: session.question
+        ? {
+            id: session.question.id,
+            title: session.question.title,
+            difficulty: session.question.difficulty,
+            suggestedTimeLimitMinutes: session.question.suggestedTimeLimitMinutes,
+          }
+        : null,
+    });
+  } catch (err) {
+    console.error('getJoinSessionPreview error:', err);
+    return res.status(500).json({ message: 'Failed to fetch session preview.' });
+  }
+}
+
 // GET /api/activity
 // Returns recent sessions for the logged-in user as activity items
 export async function getMyActivity(req: AuthRequest, res: Response) {

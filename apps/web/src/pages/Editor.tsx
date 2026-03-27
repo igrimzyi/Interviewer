@@ -103,7 +103,7 @@ const pageStyles = {
     justifyContent: "center",
     background: "linear-gradient(180deg, #ffffff 0%, #f8fafc 100%)",
     boxShadow: "0 4px 18px rgba(15, 23, 42, 0.06)",
-    fontSize: 20,
+    overflow: "hidden" as const,
   },
   interviewMeta: {
     display: "flex",
@@ -499,7 +499,13 @@ export default function Editor() {
     <div style={pageStyles.appShell}>
       <div style={pageStyles.topBar}>
         <div style={pageStyles.brandGroup}>
-          <div style={pageStyles.brandMark}>🎙️</div>
+          <div style={pageStyles.brandMark}>
+            <img
+              src="/src/assets/logo.png"
+              alt="EnterView logo"
+              style={{ width: 24, height: 24, objectFit: "contain" }}
+            />
+          </div>
 
           <div style={{ ...pageStyles.interviewMeta, minWidth: 110 }}>
             <span style={{ fontSize: 33 / 2, fontWeight: 700, color: "#1e293b" }}>EnterView</span>

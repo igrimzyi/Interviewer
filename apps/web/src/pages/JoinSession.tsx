@@ -1,8 +1,39 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import type { FormEvent } from "react";
 import {
-  type LucideIcon, Building2, User, Calendar, Clock4, Lock, CircleAlert} from "lucide-react";
+  type LucideIcon,
+  Building2,
+  User,
+  Calendar,
+  Clock4,
+  CircleAlert,
+} from "lucide-react";
 import { buttonStyles } from "../styles/shared";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+
+type SessionPreview = {
+  id: string;
+  sessionCode: string;
+  title: string;
+  status: string;
+  scheduledAt: string | null;
+  interviewer: {
+    firstName: string;
+    lastName: string;
+    email: string;
+  } | null;
+  organization: {
+    id: string;
+    name: string;
+  } | null;
+  question: {
+    id: string;
+    title: string;
+    difficulty: "easy" | "medium" | "hard";
+    suggestedTimeLimitMinutes: number;
+  } | null;
+};
 
 type Interview = {
   position: string;
@@ -17,7 +48,23 @@ type Props = {
   interview: Interview;
 };
 
- //Renders a summary card of interview details from the interview data 
+function mapSessionToInterview(session: SessionPreview): Interview {
+  const start = session.scheduledAt ? new Date(session.scheduledAt) : new Date();
+  const durationMinutes = session.question?.suggestedTimeLimitMinutes ?? 60;
+  const end = new Date(start.getTime() + durationMinutes * 60000);
+
+  return {
+    position: session.title,
+    org: session.organization?.name ?? "EnterView",
+    interviewer: session.interviewer
+      ? `${session.interviewer.firstName} ${session.interviewer.lastName}`
+      : "Interview Team",
+    start,
+    end,
+    sessionID: session.sessionCode,
+  };
+}
+
 function InfoCard({ interview }: Props) {
   const fields: { icon: LucideIcon; key: string; label: string }[] = [
     { icon: Building2, key: "org", label: "Organization" },
@@ -94,80 +141,40 @@ function InfoCard({ interview }: Props) {
   );
 }
 
-//Component handles the input from the the password
-function MyForm({ interview }: Props) {
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
+function JoinAction({ interview, isSignedIn }: Props & { isSignedIn: boolean }) {
+  const navigate = useNavigate();
 
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    setError("");
 
-    const trimmedPassword = password.trim();
-
-    if (!trimmedPassword) {
-      setError("Please enter your interview password.");
+    if (isSignedIn) {
+      navigate(`/editor/${interview.sessionID}`);
       return;
     }
 
-    try {
-      setIsSubmitting(true);
-
-      // Demo-only
-      if (trimmedPassword !== "123456") {
-        throw new Error("Invalid one-time password.");
-      }
-
-      console.log("Joining interview session:", interview.sessionID);
-
-      alert("Successfully joined interview session.");
-    } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Something went wrong. Please try again."
-      );
-    } finally {
-      setIsSubmitting(false);
-    }
+    navigate("/login");
   }
 
   return (
     <form className="flex flex-col text-xs" onSubmit={handleSubmit}>
       <div className="flex flex-col py-4 gap-2">
-        <label htmlFor="password" className="flex gap-1">
-          <Lock className="w-4 h-4" />
-          <span className="font-medium">Interview Password</span>
-        </label>
-
-        <input
-          id="password"
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          placeholder="Enter one-time password"
-          className={`rounded-lg p-2 outline-none transition ${
-            error
-              ? "bg-red-50 border border-red-300"
-              : "bg-gray-100 border border-transparent "
-          }`}
-        />
-
-        {!error ? (
-          <span id="password-help" className="text-[10px] text-gray-500 pb-1">
-            This password was provided to you by the interviewer via email.
+        <div className="flex gap-1 items-center">
+          <span className="font-medium">
+            {isSignedIn ? "You're ready to join" : "Sign in required"}
           </span>
-        ) : (
-          <span id="password-error" className="text-[10px] text-red-600 pb-1">
-            {error}
-          </span>
-        )}
+        </div>
+
+        <span className="text-[10px] text-gray-500 pb-1">
+          {isSignedIn
+            ? "Join the live interview session and open the collaborative editor."
+            : "Please sign in with your invited account to access this interview session."}
+        </span>
 
         <button
           type="submit"
-          disabled={isSubmitting}
-          className={`${buttonStyles} bg-black text-white text-xs hover:opacity-90 transition-colors duration-300 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed`}
+          className={`${buttonStyles} bg-black text-white text-xs hover:opacity-90 transition-colors duration-300 cursor-pointer`}
         >
-          {isSubmitting ? "Joining..." : "Join Interview Session >"}
+          {isSignedIn ? "Join Interview Session >" : "Sign In to Join >"}
         </button>
       </div>
     </form>
@@ -175,65 +182,100 @@ function MyForm({ interview }: Props) {
 }
 
 export default function JoinSession() {
-    const {id} = useParams();
-    //Hardcoded interview data
-  const interview: Interview = {
-    position: "Senior Frontend Engineer",
-    org: "Coyote Inc.",
-    interviewer: "John Smith",
-    start: new Date("2024-02-22T14:00:00"),
-    end: new Date("2024-02-22T15:00:00"),
-    sessionID: "INT-2024-4872",
-  };
+  const { id } = useParams();
+  const { token } = useAuth();
+  const [session, setSession] = useState<SessionPreview | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    async function loadSession() {
+      try {
+        const response = await fetch(`/api/sessions/join/${id}`);
+        const data = await response.json();
+
+        if (!response.ok) {
+          setError(data.message ?? "Unable to load interview session.");
+          return;
+        }
+
+        setSession(data);
+      } catch {
+        setError("Unable to load interview session.");
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    if (id) {
+      loadSession();
+    }
+  }, [id]);
+
+  const interview = useMemo(() => {
+    return session ? mapSessionToInterview(session) : null;
+  }, [session]);
 
   const subTextStyle = "text-xs";
 
   return (
-    <div className="flex flex-col items-center justify-center w-screen min-h-screen bg-white font-['Inter'] px-4">
+    <div className="flex flex-col items-center justify-center w-screen min-h-screen bg-white px-4">
       <div className="flex items-center gap-2 p-8">
         <img className="w-8" src="/src/assets/logo.png" alt="EnterView Logo" />
         <h1 className="text-2xl pt-2">EnterView</h1>
       </div>
 
       <div className="flex flex-col w-full max-w-140 rounded-2xl bg-white border border-border shadow-xl px-5 pt-3 pb-10">
-        <div className="flex flex-col items-center gap-2 pt-2 pb-8">
-          <div className="bg-blue-200 rounded-lg px-2 py-0.5">
-            <p className="text-[10px] font-semibold text-blue-600">
-              Interview Session
+        {loading ? (
+          <div className="py-10 text-sm text-gray-500">Loading interview session...</div>
+        ) : error || !interview ? (
+          <div className="py-10">
+            <h2 className="text-xl font-semibold">Session unavailable</h2>
+            <p className="text-sm text-gray-500 mt-2">
+              {error || "We couldn't find that interview session."}
             </p>
           </div>
+        ) : (
+          <>
+            <div className="flex flex-col items-center gap-2 pt-2 pb-8">
+              <div className="bg-blue-200 rounded-lg px-2 py-0.5">
+                <p className="text-[10px] font-semibold text-blue-600">
+                  Interview Session
+                </p>
+              </div>
 
-          <h2 className="text-xl font-semibold">
-            {interview.position} Interview
-          </h2>
+              <h2 className="text-xl font-semibold">
+                {interview.position} Interview
+              </h2>
 
-          <p className={`${subTextStyle} text-gray-400`}>
-            You've been invited to join this interview session
-          </p>
-        </div>
-
-        <div className="border-b border-gray-300 pb-4">
-
-          <InfoCard interview={interview} />
-          <MyForm interview={interview} />
-
-          <div className="flex gap-3 bg-blue-100 border border-blue-200 rounded-lg p-4">
-            <CircleAlert className="w-5 h-5 text-blue-700 shrink-0 mt-0.5" />
-            <div className="flex flex-col text-[11px] gap-2 py-1">
-              <span className="text-xs font-semibold text-blue-900">
-                Need help?
-              </span>
-              <span className="text-blue-700">
-                If you haven't received your interview password, please contact
-                <span className="text-[11px] font-bold">
-                  {" "}
-                  {interview.interviewer}
-                </span>{" "}
-                or an interview coordinator.
-              </span>
+              <p className={`${subTextStyle} text-gray-400`}>
+                You've been invited to join this interview session
+              </p>
             </div>
-          </div>
-        </div>
+
+            <div className="border-b border-gray-300 pb-4">
+              <InfoCard interview={interview} />
+              <JoinAction interview={interview} isSignedIn={Boolean(token)} />
+
+              <div className="flex gap-3 bg-blue-100 border border-blue-200 rounded-lg p-4">
+                <CircleAlert className="w-5 h-5 text-blue-700 shrink-0 mt-0.5" />
+                <div className="flex flex-col text-[11px] gap-2 py-1">
+                  <span className="text-xs font-semibold text-blue-900">
+                    Need help?
+                  </span>
+                  <span className="text-blue-700">
+                    If you can't access your interview session, please contact
+                    <span className="text-[11px] font-bold">
+                      {" "}
+                      {interview.interviewer}
+                    </span>{" "}
+                    or an interview coordinator.
+                  </span>
+                </div>
+              </div>
+            </div>
+          </>
+        )}
       </div>
 
       <span className="text-xs text-gray-400 pt-4">
