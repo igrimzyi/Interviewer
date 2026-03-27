@@ -9,6 +9,7 @@ import Session from "./pages/Session";
 import Editor from "./pages/Editor";
 import { AuthProvider } from "./context/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
+import QuestionPage from "./pages/QuestionPage"
 
 function App() {
   return (
@@ -48,6 +49,17 @@ function App() {
               </ProtectedRoute>
             }
           />
+
+          {/* QUESTION */}
+          <Route
+            path="/question/create"
+            element={
+              <ProtectedRoute>
+                <QuestionPage />
+              </ProtectedRoute>
+            }
+          />
+
         </Routes>
       </div>
     </AuthProvider>
