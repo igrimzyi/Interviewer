@@ -31,6 +31,12 @@ interface ApiSession {
   scheduledAt: string | null;
   updatedAt: string;
   interviewee: SessionInterviewee | null;
+  question?: {
+    id: string;
+    title: string;
+    difficulty: "easy" | "medium" | "hard";
+    category: string;
+  } | null;
 }
 
 interface ApiActivity {
@@ -302,6 +308,10 @@ const Dashboard: React.FC = () => {
                               : "TBD"}
                           </div>
 
+                          <div style={{ fontSize: 14, color: "#64748B", marginTop: 4 }}>
+                            Question: {session.question?.title ?? "No question selected"}
+                          </div>
+
                           <div
                             style={{
                               fontSize: 13,
@@ -325,8 +335,34 @@ const Dashboard: React.FC = () => {
                         </div>
                       </div>
 
-                      <div style={{ alignSelf: "flex-end" }}>
-                        <ChevronRight size={20} color={colors.charcoal} />
+                      <div
+                        style={{
+                          alignSelf: "flex-end",
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 10,
+                        }}
+                      >
+                        <button
+                          type="button"
+                          onClick={() => navigate(`/editor/${session.sessionCode}`)}
+                          style={{
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: 8,
+                            padding: "10px 14px",
+                            borderRadius: 10,
+                            border: "none",
+                            background: colors.blue,
+                            color: "#FFFFFF",
+                            fontSize: 14,
+                            fontWeight: 500,
+                            cursor: "pointer",
+                          }}
+                        >
+                          Join Session
+                          <ChevronRight size={16} />
+                        </button>
                       </div>
                     </div>
                   ))
