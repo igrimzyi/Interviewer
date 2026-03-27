@@ -17,7 +17,7 @@ function App() {
           <Route path="/" element={<><Navbar/> <LandingPage /></>} />
           <Route path="/register" element={<Register />} />
           <Route path="/login" element={<LoginPage />} />
-          <Route path="/session/join/1" element={<JoinSession/>}/>
+          <Route path="/session/join/:id" element={<JoinSession/>}/>
           <Route
             path="/dashboard"
             element={
