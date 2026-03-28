@@ -1,5 +1,6 @@
 import React, { useMemo, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import logo from "../assets/Group_Logo.png";
 import { useAuth } from "../context/AuthContext";
 
 type AccountType = "interviewer" | "interviewee";
@@ -131,28 +132,28 @@ export default function Register() {
       const payload =
         accountType === "interviewee"
           ? {
-              accountType,
-              profile: {
-                firstName: profile.firstName.trim(),
-                lastName: profile.lastName.trim(),
-                email: profile.email.trim(),
-                password: profile.password,
-              },
-            }
+            accountType,
+            profile: {
+              firstName: profile.firstName.trim(),
+              lastName: profile.lastName.trim(),
+              email: profile.email.trim(),
+              password: profile.password,
+            },
+          }
           : {
-              accountType,
-              profile: {
-                firstName: profile.firstName.trim(),
-                lastName: profile.lastName.trim(),
-                email: profile.email.trim(),
-                password: profile.password,
-              },
-              organization: {
-                name: org.organizationName.trim(),
-                size: org.organizationSize.trim(),
-                industry: org.industry.trim(),
-              },
-            };
+            accountType,
+            profile: {
+              firstName: profile.firstName.trim(),
+              lastName: profile.lastName.trim(),
+              email: profile.email.trim(),
+              password: profile.password,
+            },
+            organization: {
+              name: org.organizationName.trim(),
+              size: org.organizationSize.trim(),
+              industry: org.industry.trim(),
+            },
+          };
 
       const res = await fetch("/api/register", {
         method: "POST",
@@ -228,384 +229,356 @@ export default function Register() {
       <div className="mx-auto flex w-full max-w-[720px] flex-col items-center">
         {/* Logo */}
         <div className="mb-6 flex flex-col items-center">
-          {/* Simple “robot head” placeholder icon */}
-          <div
-            className="mb-3 flex h-12 w-12 items-center justify-center rounded-full"
-            style={{ border: `1px solid ${COLORS.lightBorder}` }}
-            aria-hidden="true"
-          >
-            <div className="relative h-5 w-6 rounded-md" style={{ border: `2px solid ${COLORS.black}` }}>
-              <div
-                className="absolute -top-3 left-1/2 h-3 w-3 -translate-x-1/2 rounded-full"
-                style={{ border: `2px solid ${COLORS.black}` }}
-              />
-            </div>
-          </div>
+
+          <img
+            src={logo}
+            alt="EnterView logo"
+            className="mb-3 h-10 w-auto"
+          />
 
           <h1 className="text-3xl font-semibold" style={{ color: COLORS.black }}>
             EnterView
           </h1>
+
           <p className="mt-1 text-sm" style={{ color: COLORS.charcoal }}>
             Create your account
           </p>
+
         </div>
 
-        {/* Stepper */}
-        <div className="mb-6 w-full max-w-[520px]">
-          <div className="flex items-center justify-between">
-            {steps.map((s, idx) => {
-              const isActive = step === s.n;
-              const isDone = step > s.n;
+      {/* Stepper */}
+      <div className="mb-6 w-full max-w-[520px]">
+        <div className="flex items-center justify-between">
+          {steps.map((s, idx) => {
+            const isActive = step === s.n;
+            const isDone = step > s.n;
 
-              return (
-                <React.Fragment key={s.n}>
-                  <div className="flex flex-col items-center gap-2">
-                    <div
-                      className={cx(
-                        "flex h-9 w-9 items-center justify-center rounded-full text-sm font-semibold",
-                        isActive || isDone ? "text-white" : "text-slate-600"
-                      )}
-                      style={{
-                        backgroundColor: isActive || isDone ? COLORS.blue : "#EAF0FF",
-                        border: `1px solid ${isActive || isDone ? COLORS.blue : COLORS.lightBorder}`,
-                      }}
-                      aria-current={isActive ? "step" : undefined}
-                    >
-                      {s.n}
-                    </div>
-                    <div className="text-xs" style={{ color: COLORS.charcoal }}>
-                      {s.label}
-                    </div>
-                  </div>
-
-                  {idx < steps.length - 1 && (
-                    <div
-                      className="mx-2 h-[2px] flex-1"
-                      style={{
-                        backgroundColor: step > s.n ? COLORS.blue : COLORS.lightBorder,
-                      }}
-                      aria-hidden="true"
-                    />
-                  )}
-                </React.Fragment>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Card */}
-        <div
-          className="w-full max-w-[520px] rounded-2xl bg-white p-5 sm:p-6"
-          style={{ border: `1px solid ${COLORS.lightBorder}` }}
-        >
-          {/* Step content */}
-          {step === 1 && (
-            <div>
-              <h2 className="text-lg font-semibold" style={{ color: COLORS.black }}>
-                Choose Account Type
-              </h2>
-              <p className="mt-1 text-sm" style={{ color: COLORS.charcoal }}>
-                Select how you'll be using EnterView
-              </p>
-
-              <div className="mt-5 space-y-3">
-                <button
-                  type="button"
-                  onClick={() => setAccountType("interviewer")}
-                 className={cx(
-                    "w-full rounded-xl p-4 text-left transition",
-                    accountType === "interviewer" ? "ring-2 ring-[#155DFC]" : ""
-                 )}
+            return (
+              <React.Fragment key={s.n}>
+                <div className="flex flex-col items-center gap-2">
+                  <div
+                    className={cx(
+                      "flex h-9 w-9 items-center justify-center rounded-full text-sm font-semibold",
+                      isActive || isDone ? "text-white" : "text-slate-600"
+                    )}
                     style={{
-                    border: `1px solid ${accountType === "interviewer" ? COLORS.blue : COLORS.lightBorder}`,
-                    backgroundColor: accountType === "interviewer" ? "rgba(21,93,252,0.08)" : "white",
-                 }}
-                >
-                  <div className="flex items-start gap-3">
-                    <div
-                      className="mt-1 flex h-9 w-9 items-center justify-center rounded-lg text-white"
-                      style={{ backgroundColor: COLORS.blue }}
-                      aria-hidden="true"
-                    >
-                      {/* simple icon */}
-                      <span className="text-sm font-bold">I</span>
-                    </div>
-
-                    <div className="flex-1">
-                      <div className="flex items-center justify-between">
-                        <div className="font-semibold" style={{ color: COLORS.black }}>
-                          Interviewer
-                        </div>
-                        <div
-                          className="h-4 w-4 rounded-full"
-                          style={{
-                            border: `2px solid ${accountType === "interviewer" ? COLORS.blue : COLORS.lightBorder}`,
-                            backgroundColor: accountType === "interviewer" ? COLORS.blue : "transparent",
-                          }}
-                          aria-hidden="true"
-                        />
-                      </div>
-                      <div className="mt-1 text-sm" style={{ color: COLORS.charcoal }}>
-                        Conduct interviews and evaluate candidates
-                      </div>
-                    </div>
+                      backgroundColor: isActive || isDone ? COLORS.blue : "#EAF0FF",
+                      border: `1px solid ${isActive || isDone ? COLORS.blue : COLORS.lightBorder}`,
+                    }}
+                    aria-current={isActive ? "step" : undefined}
+                  >
+                    {s.n}
                   </div>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setAccountType("interviewee")}
-                 className={cx(
-                    "w-full rounded-xl p-4 text-left transition",
-                    accountType === "interviewee" ? "ring-2 ring-[#155DFC]" : ""
-                 )}
-                    style={{
-                    border: `1px solid ${accountType === "interviewee" ? COLORS.blue : COLORS.lightBorder}`,
-                    backgroundColor: accountType === "interviewee" ? "rgba(21,93,252,0.08)" : "white",
-                 }}
-                >
-                  <div className="flex items-start gap-3">
-                    <div
-                      className="mt-1 flex h-9 w-9 items-center justify-center rounded-lg text-white"
-                      style={{ backgroundColor: "#7C3AED" }}
-                      aria-hidden="true"
-                    >
-                      <span className="text-sm font-bold">U</span>
-                    </div>
-
-                    <div className="flex-1">
-                      <div className="flex items-center justify-between">
-                        <div className="font-semibold" style={{ color: COLORS.black }}>
-                          Interviewee
-                        </div>
-                        <div
-                          className="h-4 w-4 rounded-full"
-                          style={{
-                            border: `2px solid ${accountType === "interviewee" ? COLORS.blue : COLORS.lightBorder}`,
-                            backgroundColor: accountType === "interviewee" ? COLORS.blue : "transparent",
-                          }}
-                          aria-hidden="true"
-                        />
-                      </div>
-                      <div className="mt-1 text-sm" style={{ color: COLORS.charcoal }}>
-                        Join interviews from organizations
-                      </div>
-                    </div>
+                  <div className="text-xs" style={{ color: COLORS.charcoal }}>
+                    {s.label}
                   </div>
-                </button>
-                
-                <button
-                  type="button"
-                  onClick={goNext}
-                  className="mt-4 w-full rounded-xl py-3 font-semibold text-white"
-                  style={{ backgroundColor: COLORS.black }}
-                >
-                  Continue
-                </button>
-
-                <div className="mt-3 text-center text-sm" style={{ color: COLORS.charcoal }}>
-                  Already have an account?{" "}
-                  <a href="/login" style={{ color: COLORS.blue, fontWeight: 600 }}>
-                    Sign in
-                  </a>
                 </div>
+
+                {idx < steps.length - 1 && (
+                  <div
+                    className="mx-2 h-[2px] flex-1"
+                    style={{
+                    backgroundColor: isDone || isActive ? COLORS.blue : COLORS.lightBorder,
+                 }}
+               />
+             )}
+           </React.Fragment>
+         );
+       })}
+     </div>
+   </div>
+
+      {/* Card */}
+      <div
+        className="w-full max-w-[520px] rounded-2xl bg-white p-5 sm:p-6"
+        style={{ border: `1px solid ${COLORS.lightBorder}` }}
+      >
+        {/* Step content */}
+        {step === 1 && (
+          <div>
+            <h2 className="text-lg font-semibold" style={{ color: COLORS.black }}>
+              Choose Account Type
+            </h2>
+            <p className="mt-1 text-sm" style={{ color: COLORS.charcoal }}>
+              Select how you'll be using EnterView
+            </p>
+
+            <div className="mt-5 space-y-3">
+              <button
+                type="button"
+                onClick={() => setAccountType("interviewer")}
+                className={cx(
+                  "w-full rounded-xl p-4 text-left transition",
+                  accountType === "interviewer" ? "ring-2 ring-[#155DFC]" : ""
+                )}
+                style={{
+                  border: `1px solid ${accountType === "interviewer" ? COLORS.blue : COLORS.lightBorder}`,
+                  backgroundColor: accountType === "interviewer" ? "rgba(21,93,252,0.08)" : "white",
+                }}
+              >
+                <div className="flex items-start gap-3">
+                  <div
+                    className="mt-1 flex h-9 w-9 items-center justify-center rounded-lg text-white"
+                    style={{ backgroundColor: COLORS.blue }}
+                    aria-hidden="true"
+                  >
+                    {/* simple icon */}
+                    <span className="text-sm font-bold">I</span>
+                  </div>
+
+                  <div className="flex-1">
+                    <div className="flex items-center justify-between">
+                      <div className="font-semibold" style={{ color: COLORS.black }}>
+                        Interviewer
+                      </div>
+                      <div
+                        className="h-4 w-4 rounded-full"
+                        style={{
+                          border: `2px solid ${accountType === "interviewer" ? COLORS.blue : COLORS.lightBorder}`,
+                          backgroundColor: accountType === "interviewer" ? COLORS.blue : "transparent",
+                        }}
+                        aria-hidden="true"
+                      />
+                    </div>
+                    <div className="mt-1 text-sm" style={{ color: COLORS.charcoal }}>
+                      Conduct interviews and evaluate candidates
+                    </div>
+                  </div>
+                </div>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setAccountType("interviewee")}
+                className={cx(
+                  "w-full rounded-xl p-4 text-left transition",
+                  accountType === "interviewee" ? "ring-2 ring-[#155DFC]" : ""
+                )}
+                style={{
+                  border: `1px solid ${accountType === "interviewee" ? COLORS.blue : COLORS.lightBorder}`,
+                  backgroundColor: accountType === "interviewee" ? "rgba(21,93,252,0.08)" : "white",
+                }}
+              >
+                <div className="flex items-start gap-3">
+                  <div
+                    className="mt-1 flex h-9 w-9 items-center justify-center rounded-lg text-white"
+                    style={{ backgroundColor: "#7C3AED" }}
+                    aria-hidden="true"
+                  >
+                    <span className="text-sm font-bold">U</span>
+                  </div>
+
+                  <div className="flex-1">
+                    <div className="flex items-center justify-between">
+                      <div className="font-semibold" style={{ color: COLORS.black }}>
+                        Interviewee
+                      </div>
+                      <div
+                        className="h-4 w-4 rounded-full"
+                        style={{
+                          border: `2px solid ${accountType === "interviewee" ? COLORS.blue : COLORS.lightBorder}`,
+                          backgroundColor: accountType === "interviewee" ? COLORS.blue : "transparent",
+                        }}
+                        aria-hidden="true"
+                      />
+                    </div>
+                    <div className="mt-1 text-sm" style={{ color: COLORS.charcoal }}>
+                      Join interviews from organizations
+                    </div>
+                  </div>
+                </div>
+              </button>
+
+              <button
+                type="button"
+                onClick={goNext}
+                className="mt-4 w-full rounded-xl py-3 font-semibold text-white"
+                style={{ backgroundColor: COLORS.black }}
+              >
+                Continue
+              </button>
+
+              <div className="mt-3 text-center text-sm" style={{ color: COLORS.charcoal }}>
+                Already have an account?{" "}
+                <a href="/login" style={{ color: COLORS.blue, fontWeight: 600 }}>
+                  Sign in
+                </a>
               </div>
             </div>
-          )}
+          </div>
+        )}
 
-          {step === 2 && (
-            <form
-              onSubmit={async (e) => {
-                e.preventDefault();
-                await goNext();
-              }}
-              noValidate
-            >
-              <h2 className="text-lg font-semibold" style={{ color: COLORS.black }}>
-                Your Information
-              </h2>
+        {step === 2 && (
+          <form
+            onSubmit={async (e) => {
+              e.preventDefault();
+              await goNext();
+            }}
+            noValidate
+          >
+            <h2 className="text-lg font-semibold" style={{ color: COLORS.black }}>
+              Your Information
+            </h2>
 
-              <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <Field
-                  label="First Name"
-                  name="firstName"
-                  value={profile.firstName}
-                  onChange={(v) => setProfile((p) => ({ ...p, firstName: v }))}
-                  required
-                  autoComplete="given-name"
-                  error={errors.firstName}
-                />
-                <Field
-                  label="Last Name"
-                  name="lastName"
-                  value={profile.lastName}
-                  onChange={(v) => setProfile((p) => ({ ...p, lastName: v }))}
-                  required
-                  autoComplete="family-name"
-                  error={errors.lastName}
-                />
+            <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <Field
+                label="First Name"
+                name="firstName"
+                value={profile.firstName}
+                onChange={(v) => setProfile((p) => ({ ...p, firstName: v }))}
+                required
+                autoComplete="given-name"
+                error={errors.firstName}
+              />
+              <Field
+                label="Last Name"
+                name="lastName"
+                value={profile.lastName}
+                onChange={(v) => setProfile((p) => ({ ...p, lastName: v }))}
+                required
+                autoComplete="family-name"
+                error={errors.lastName}
+              />
+            </div>
+
+            <div className="mt-4">
+              <Field
+                label="Email"
+                name="email"
+                value={profile.email}
+                onChange={(v) => setProfile((p) => ({ ...p, email: v }))}
+                required
+                type="email"
+                autoComplete="email"
+                placeholder="john@example.com"
+                error={errors.email}
+              />
+            </div>
+
+            <div className="mt-4">
+              <Field
+                label="Password"
+                name="password"
+                value={profile.password}
+                onChange={(v) => setProfile((p) => ({ ...p, password: v }))}
+                required
+                type="password"
+                autoComplete="new-password"
+                minLength={8}
+                error={errors.password}
+              />
+            </div>
+
+            <div className="mt-4">
+              <Field
+                label="Confirm Password"
+                name="confirmPassword"
+                value={profile.confirmPassword}
+                onChange={(v) => setProfile((p) => ({ ...p, confirmPassword: v }))}
+                required
+                type="password"
+                autoComplete="new-password"
+                minLength={8}
+                error={errors.confirmPassword}
+              />
+            </div>
+
+            <div className="mt-6 flex gap-3">
+              <button
+                type="button"
+                onClick={goBack}
+                className="flex-1 rounded-xl py-3 font-semibold"
+                style={{ border: `1px solid ${COLORS.lightBorder}`, color: COLORS.black }}
+              >
+                Back
+              </button>
+              <button
+                type="submit"
+                className="flex-1 rounded-xl py-3 font-semibold text-white"
+                style={{ backgroundColor: COLORS.black }}
+              >
+                Continue
+              </button>
+            </div>
+          </form>
+        )}
+
+        {step === 3 && (
+          <form onSubmit={onComplete} noValidate>
+            <h2 className="text-lg font-semibold" style={{ color: COLORS.black }}>
+              Organization Details
+            </h2>
+
+            <div className="mt-5">
+              <Field
+                label="Organization Name"
+                name="organizationName"
+                value={org.organizationName}
+                onChange={(v) => setOrg((o) => ({ ...o, organizationName: v }))}
+                required
+                placeholder="Acme Corp"
+                error={errors.organizationName}
+              />
+            </div>
+
+            <div className="mt-4">
+              <Field
+                label="Organization Size"
+                name="organizationSize"
+                value={org.organizationSize}
+                onChange={(v) => setOrg((o) => ({ ...o, organizationSize: v }))}
+                required
+                placeholder="1-10, 11-50, 51-200, etc."
+                error={errors.organizationSize}
+              />
+            </div>
+
+            <div className="mt-4">
+              <Field
+                label="Industry"
+                name="industry"
+                value={org.industry}
+                onChange={(v) => setOrg((o) => ({ ...o, industry: v }))}
+                required
+                placeholder="Technology, Finance, etc."
+                error={errors.industry}
+              />
+            </div>
+
+            {submitError && (
+              <div
+                className="mt-4 rounded-lg p-3 text-sm"
+                style={{ border: `1px solid ${COLORS.lightBorder}`, color: COLORS.black }}
+                role="alert"
+              >
+                {submitError}
               </div>
+            )}
 
-              <div className="mt-4">
-                <Field
-                  label="Email"
-                  name="email"
-                  value={profile.email}
-                  onChange={(v) => setProfile((p) => ({ ...p, email: v }))}
-                  required
-                  type="email"
-                  autoComplete="email"
-                  placeholder="john@example.com"
-                  error={errors.email}
-                />
-              </div>
-
-              <div className="mt-4">
-                <Field
-                  label="Password"
-                  name="password"
-                  value={profile.password}
-                  onChange={(v) => setProfile((p) => ({ ...p, password: v }))}
-                  required
-                  type="password"
-                  autoComplete="new-password"
-                  minLength={8}
-                  error={errors.password}
-                />
-              </div>
-
-              <div className="mt-4">
-                <Field
-                  label="Confirm Password"
-                  name="confirmPassword"
-                  value={profile.confirmPassword}
-                  onChange={(v) => setProfile((p) => ({ ...p, confirmPassword: v }))}
-                  required
-                  type="password"
-                  autoComplete="new-password"
-                  minLength={8}
-                  error={errors.confirmPassword}
-                />
-              </div>
-
-              <div className="mt-6 flex gap-3">
-                <button
-                  type="button"
-                  onClick={goBack}
-                  className="flex-1 rounded-xl py-3 font-semibold"
-                  style={{ border: `1px solid ${COLORS.lightBorder}`, color: COLORS.black }}
-                >
-                  Back
-                </button>
-                <button
-                  type="submit"
-                  className="flex-1 rounded-xl py-3 font-semibold text-white"
-                  style={{ backgroundColor: COLORS.black }}
-                >
-                  Continue
-                </button>
-              </div>
-            </form>
-          )}
-
-          {step === 3 && (
-            <form onSubmit={onComplete} noValidate>
-              <h2 className="text-lg font-semibold" style={{ color: COLORS.black }}>
-                Organization Details
-              </h2>
-
-              <div className="mt-5">
-                <Field
-                  label="Organization Name"
-                  name="organizationName"
-                  value={org.organizationName}
-                  onChange={(v) => setOrg((o) => ({ ...o, organizationName: v }))}
-                  required
-                  placeholder="Acme Corp"
-                  error={errors.organizationName}
-                />
-              </div>
-
-              <div className="mt-4">
-                <label htmlFor="organizationSize" className="block text-sm font-medium" style={{ color: COLORS.black }}>
-                  Organization Size
-                </label>
-                <select
-                  id="organizationSize"
-                  name="organizationSize"
-                  value={org.organizationSize}
-                  onChange={(e) => setOrg((o) => ({ ...o, organizationSize: e.target.value }))}
-                  required
-                  className="mt-2 w-full rounded-xl px-3 py-3 text-sm outline-none"
-                  style={{
-                    border: `1px solid ${errors.organizationSize ? "#EF4444" : COLORS.lightBorder}`,
-                    backgroundColor: "#F8FAFC",
-                    color: org.organizationSize ? COLORS.black : "#9CA3AF",
-                  }}
-                  aria-invalid={Boolean(errors.organizationSize)}
-                  aria-describedby={errors.organizationSize ? "organizationSize-error" : undefined}
-                >
-                  <option value="" disabled>Select size…</option>
-                  <option value="1-10">1–10</option>
-                  <option value="11-50">11–50</option>
-                  <option value="51-200">51–200</option>
-                  <option value="201-500">201–500</option>
-                  <option value="501-1000">501–1000</option>
-                  <option value="1000+">1000+</option>
-                </select>
-                {errors.organizationSize && (
-                  <div id="organizationSize-error" className="mt-2 text-sm" style={{ color: "#B91C1C" }}>
-                    {errors.organizationSize}
-                  </div>
-                )}
-              </div>
-
-              <div className="mt-4">
-                <Field
-                  label="Industry"
-                  name="industry"
-                  value={org.industry}
-                  onChange={(v) => setOrg((o) => ({ ...o, industry: v }))}
-                  required
-                  placeholder="Technology, Finance, etc."
-                  error={errors.industry}
-                />
-              </div>
-
-              {submitError && (
-                <div
-                  className="mt-4 rounded-lg p-3 text-sm"
-                  style={{ border: `1px solid ${COLORS.lightBorder}`, color: COLORS.black }}
-                  role="alert"
-                >
-                  {submitError}
-                </div>
-              )}
-
-              <div className="mt-6 flex gap-3">
-                <button
-                  type="button"
-                  onClick={goBack}
-                  className="flex-1 rounded-xl py-3 font-semibold"
-                  style={{ border: `1px solid ${COLORS.lightBorder}`, color: COLORS.black }}
-                  disabled={isSubmitting}
-                >
-                  Back
-                </button>
-                <button
-                  type="submit"
-                  className="flex-1 rounded-xl py-3 font-semibold text-white disabled:opacity-70"
-                  style={{ backgroundColor: COLORS.black }}
-                  disabled={isSubmitting}
-                >
-                  {isSubmitting ? "Creating..." : "Complete"}
-                </button>
-              </div>
-            </form>
-          )}
-        </div>
+            <div className="mt-6 flex gap-3">
+              <button
+                type="button"
+                onClick={goBack}
+                className="flex-1 rounded-xl py-3 font-semibold"
+                style={{ border: `1px solid ${COLORS.lightBorder}`, color: COLORS.black }}
+                disabled={isSubmitting}
+              >
+                Back
+              </button>
+              <button
+                type="submit"
+                className="flex-1 rounded-xl py-3 font-semibold text-white disabled:opacity-70"
+                style={{ backgroundColor: COLORS.black }}
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? "Creating..." : "Complete"}
+              </button>
+            </div>
+          </form>
+        )}
       </div>
     </div>
+  </div>
   );
 }
 
