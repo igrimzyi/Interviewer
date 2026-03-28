@@ -1,6 +1,7 @@
 import React, { useMemo, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import logo from "../assets/Group_Logo.png";
+import { useAuth } from "../context/AuthContext";
 
 type AccountType = "interviewer" | "interviewee";
 
@@ -33,6 +34,7 @@ function cx(...classes: Array<string | false | undefined | null>) {
 
 export default function Register() {
   const navigate = useNavigate();
+  const { signIn } = useAuth();
 
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [accountType, setAccountType] = useState<AccountType>("interviewer");
@@ -171,7 +173,9 @@ export default function Register() {
         return;
       }
 
-      navigate("/");
+      const data = await res.json();
+      signIn(data.token, data.user);
+      navigate("/dashboard");
     } catch (err: any) {
       setSubmitError(err?.message ?? "Network error. Please try again.");
     } finally {
@@ -274,16 +278,15 @@ export default function Register() {
                   <div
                     className="mx-2 h-[2px] flex-1"
                     style={{
-                      backgroundColor: step > s.n ? COLORS.blue : COLORS.lightBorder,
-                    }}
-                    aria-hidden="true"
-                  />
-                )}
-              </React.Fragment>
-            );
-          })}
-        </div>
-      </div>
+                    backgroundColor: isDone || isActive ? COLORS.blue : COLORS.lightBorder,
+                 }}
+               />
+             )}
+           </React.Fragment>
+         );
+       })}
+     </div>
+   </div>
 
       {/* Card */}
       <div

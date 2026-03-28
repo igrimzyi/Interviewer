@@ -1,5 +1,7 @@
 import { LogOut } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import logo from "../assets/Group_Logo.png";
+import { useAuth } from "../context/AuthContext";
 
 const colors = {
   black: "#0F172B",
@@ -9,6 +11,23 @@ const colors = {
 };
 
 const LoggedInNavbar = () => {
+  const navigate = useNavigate();
+  const { user, signOut } = useAuth();
+
+  function handleLogout() {
+    signOut();
+    navigate("/login");
+  }
+
+  const initials = user
+    ? `${user.firstName[0] ?? ""}${user.lastName[0] ?? ""}`.toUpperCase()
+    : "?";
+
+  const displayName = user ? `${user.firstName} ${user.lastName}` : "";
+  const displayRole = user?.role
+    ? user.role.charAt(0).toUpperCase() + user.role.slice(1)
+    : "";
+
   return (
     <div
       className="LoggedInNavbar-container"
@@ -47,17 +66,20 @@ const LoggedInNavbar = () => {
             fontSize: 14,
           }}
         >
-          IT
+          {initials}
         </div>
 
         <div>
-          <div style={{ fontWeight: 500 }}>Isaiah Tamayo</div>
-          <div style={{ fontSize: 12, color: colors.charcoal }}>
-            Interviewer
-          </div>
+          <div style={{ fontWeight: 500 }}>{displayName}</div>
+          <div style={{ fontSize: 12, color: colors.charcoal }}>{displayRole}</div>
         </div>
 
-        <LogOut size={20} color={colors.charcoal} style={{ cursor: "pointer" }} />
+        <LogOut
+          size={20}
+          color={colors.charcoal}
+          style={{ cursor: "pointer" }}
+          onClick={handleLogout}
+        />
       </div>
     </div>
   );

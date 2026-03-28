@@ -88,4 +88,4 @@ const Session = sequelize.define(
   }
 );
 
-export default Role
+export default Session
