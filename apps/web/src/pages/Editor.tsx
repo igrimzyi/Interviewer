@@ -2,10 +2,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import MonacoEditor from "@monaco-editor/react";
 import type { editor as MonacoEditorNS } from "monaco-editor";
-import type { editor } from "monaco-editor";
 import {
   Check,
-  Circle,
   Clock3,
   FileQuestion,
   Play,
@@ -13,11 +11,6 @@ import {
   Users,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
-
-type OnMount = (
-  editor: editor.IStandaloneCodeEditor,
-  monaco: typeof import("monaco-editor"),
-) => void;
 
 interface ConnectedUser {
   userId: string;
@@ -80,8 +73,8 @@ const pageStyles = {
     display: "flex",
     alignItems: "center",
     justifyContent: "space-between",
-    gap: 16,
-    padding: "12px 18px",
+    gap: 20,
+    padding: "14px 24px",
     background: "#ffffff",
     borderBottom: "1px solid #e2e8f0",
     flexWrap: "wrap" as const,
@@ -90,19 +83,18 @@ const pageStyles = {
   brandGroup: {
     display: "flex",
     alignItems: "center",
-    gap: 16,
+    gap: 20,
     minWidth: 0,
   },
   brandMark: {
-    width: 38,
-    height: 38,
-    borderRadius: 12,
+    width: 52,
+    height: 52,
+    borderRadius: 16,
     border: "1px solid #dbe3ef",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    background: "linear-gradient(180deg, #ffffff 0%, #f8fafc 100%)",
-    boxShadow: "0 4px 18px rgba(15, 23, 42, 0.06)",
+    background: "#ffffff",
     overflow: "hidden" as const,
   },
   interviewMeta: {
@@ -121,14 +113,14 @@ const pageStyles = {
     display: "flex",
     alignItems: "center",
     gap: 8,
-    padding: "0 6px",
-    color: "#64748b",
-    fontSize: 15,
-    fontWeight: 600,
+    padding: "0 4px",
+    color: "#45556C",
+    fontSize: 16,
+    fontWeight: 500,
   },
   mainGrid: {
     display: "grid",
-    gridTemplateColumns: "320px minmax(0, 1fr)",
+    gridTemplateColumns: "383px minmax(0, 1fr)",
     flex: 1,
     minHeight: 0,
     overflow: "hidden" as const,
@@ -151,39 +143,39 @@ const pageStyles = {
     alignItems: "center",
     justifyContent: "center",
     gap: 8,
-    height: 48,
+    height: 60,
     border: "none",
     background: "#ffffff",
-    color: "#475569",
-    fontSize: 14,
-    fontWeight: 600,
+    color: "#0A0A0A",
+    fontSize: 15,
+    fontWeight: 500,
     cursor: "pointer",
   },
   activeTabButton: {
-    background: "#f8fafc",
-    color: "#0f172a",
-    boxShadow: "inset 0 -2px 0 #0f172a",
+    background: "#ffffff",
+    color: "#0A0A0A",
+    boxShadow: "inset 0 -3px 0 #0f172b",
   },
   sidebarScroll: {
     flex: 1,
     minHeight: 0,
-    padding: 20,
+    padding: "18px 24px 24px",
     overflowY: "auto" as const,
     display: "flex",
     flexDirection: "column" as const,
-    gap: 22,
+    gap: 28,
   },
   exampleCard: {
     border: "1px solid #e2e8f0",
     borderRadius: 16,
     background: "#ffffff",
     overflow: "hidden",
-    boxShadow: "0 10px 30px rgba(15, 23, 42, 0.04)",
+    boxShadow: "none",
   },
   codeBlock: {
     marginTop: 8,
     padding: "12px 14px",
-    borderRadius: 10,
+    borderRadius: 8,
     background: "#f8fafc",
     color: "#334155",
     fontSize: 13,
@@ -203,8 +195,8 @@ const pageStyles = {
     display: "flex",
     alignItems: "center",
     justifyContent: "space-between",
-    gap: 16,
-    padding: "12px 18px",
+    gap: 20,
+    padding: "14px 24px",
     borderBottom: "1px solid #e2e8f0",
     background: "#ffffff",
     flexWrap: "wrap" as const,
@@ -212,7 +204,7 @@ const pageStyles = {
   toolbarGroup: {
     display: "flex",
     alignItems: "center",
-    gap: 12,
+    gap: 20,
     flexWrap: "wrap" as const,
   },
   editorFrame: {
@@ -220,19 +212,6 @@ const pageStyles = {
     minHeight: 0,
     background: "#0f172a",
     overflow: "hidden" as const,
-  },
-  outputPanel: {
-    borderTop: "1px solid #1e293b",
-    background: "#020617",
-    color: "#e2e8f0",
-    minHeight: 140,
-    maxHeight: 220,
-    overflowY: "auto" as const,
-    padding: "14px 18px",
-    fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace",
-    fontSize: 13,
-    lineHeight: 1.6,
-    flexShrink: 0,
   },
   ghostButton: {
     display: "inline-flex",
@@ -325,7 +304,7 @@ export default function Editor() {
   const [runError, setRunError] = useState<string | null>(null);
   const [isRunning, setIsRunning] = useState(false);
 
-  const handleEditorMount: OnMount = useCallback((editorInstance) => {
+  const handleEditorMount = useCallback((editorInstance: MonacoEditorNS.IStandaloneCodeEditor) => {
     editorRef.current = editorInstance;
   }, []);
 
@@ -492,9 +471,6 @@ export default function Editor() {
     };
   }, [sessionCode, token]);
 
-  const statusColor =
-    status === "connected" ? "#16a34a" : status === "connecting" ? "#d97706" : "#dc2626";
-
   return (
     <div style={pageStyles.appShell}>
       <div style={pageStyles.topBar}>
@@ -508,7 +484,7 @@ export default function Editor() {
           </div>
 
           <div style={{ ...pageStyles.interviewMeta, minWidth: 110 }}>
-            <span style={{ fontSize: 33 / 2, fontWeight: 700, color: "#1e293b" }}>EnterView</span>
+            <span style={{ fontSize: 18, fontWeight: 700, color: "#0A0A0A" }}>EnterView</span>
           </div>
 
           <div
@@ -522,15 +498,15 @@ export default function Editor() {
           <div style={pageStyles.interviewMeta}>
             <span
               style={{
-                fontSize: 20,
-                fontWeight: 700,
-                color: "#1e293b",
+                fontSize: 17,
+                fontWeight: 600,
+                color: "#0A0A0A",
                 lineHeight: 1.2,
               }}
             >
               Senior Frontend Engineer Interview
             </span>
-            <span style={{ fontSize: 13, color: "#64748b", fontWeight: 500 }}>
+            <span style={{ fontSize: 14, color: "#45556C", fontWeight: 500 }}>
               Session ID: {sessionCode ? `INT-${sessionCode}` : "INT-2024-4872"}
             </span>
           </div>
@@ -551,7 +527,7 @@ export default function Editor() {
       <div
         style={{
           ...pageStyles.mainGrid,
-          gridTemplateColumns: isNarrowLayout ? "1fr" : "320px minmax(0, 1fr)",
+          gridTemplateColumns: isNarrowLayout ? "1fr" : "383px minmax(0, 1fr)",
         }}
       >
         <aside
@@ -589,7 +565,8 @@ export default function Editor() {
               <>
                 <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
-                    <h2 style={{ margin: 0, fontSize: 20, color: "#1e293b" }}>
+                    <h2
+                      style={{margin: 0, fontSize: 21, fontWeight: 500, color: "#0A0A0A", lineHeight: 1.2 }}>
                       {sessionQuestion.title}
                     </h2>
                     <span
@@ -609,16 +586,16 @@ export default function Editor() {
                     </span>
                   </div>
 
-                  <div style={{ fontSize: 13, color: "#64748b", fontWeight: 600 }}>
+                  <div style={{ fontSize: 13, color: "#64748B", fontWeight: 600 }}>
                     {sessionQuestion.category}
                   </div>
 
                   <p
                     style={{
                       margin: 0,
-                      color: "#64748b",
-                      fontSize: 15,
-                      lineHeight: 1.65,
+                      color: "#45556C",
+                      fontSize: 14,
+                      lineHeight: 1.7,
                     }}
                   >
                     {sessionQuestion.description}
@@ -698,27 +675,54 @@ export default function Editor() {
                 </section>
               </>
             ) : (
-              <section style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <Circle size={10} fill={statusColor} color={statusColor} />
-                  <span style={{ fontSize: 14, fontWeight: 700, color: "#334155" }}>
-                    {status === "connected"
-                      ? "Live collaboration"
-                      : status === "connecting"
-                        ? "Connecting..."
-                        : "Disconnected"}
+              <section style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+                <div style={{display: "flex", alignItems: "center", justifyContent: "space-between", }}>
+                  <span style={{ fontSize: 15, fontWeight: 600, color: "#0A0A0A" }}>
+                    In Session
                   </span>
+                  <div
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 6,
+                      height: 28,
+                      padding: "0 10px",
+                      borderRadius: 999,
+                      background: "#F1F5F9",
+                      color: "#334155",
+                      fontSize: 13,
+                      fontWeight: 600,
+                    }}>
+                    <Users size={14} />
+                    {connectedUsers.length}
+                  </div>
                 </div>
+                <button
+                  type="button"
+                  style={{
+                    width: "100%",
+                    height: 36,
+                    borderRadius: 10,
+                    border: "1px solid #D6DCE8",
+                    background: "#FFFFFF",
+                    color: "#0A0A0A",
+                    fontSize: 14,
+                    fontWeight: 500,
+                    cursor: "pointer",
+                  }}
+                >
+                  Invite Participant
+                </button>
 
                 {connectedUsers.length === 0 ? (
                   <div
                     style={{
-                      border: "1px dashed #cbd5e1",
-                      borderRadius: 16,
+                      border: "1px dashed #CBD5E1",
+                      borderRadius: 14,
                       padding: 18,
-                      color: "#64748b",
+                      color: "#64748B",
                       fontSize: 14,
-                      background: "#f8fafc",
+                      background: "#F8FAFC",
                     }}
                   >
                     Waiting for participants to join this session.
@@ -734,39 +738,51 @@ export default function Editor() {
                         style={{
                           display: "flex",
                           alignItems: "center",
+                          justifyContent: "space-between",
                           gap: 12,
-                          padding: 14,
-                          borderRadius: 16,
-                          border: "1px solid #e2e8f0",
-                          background: "#ffffff",
-                          boxShadow: "0 10px 26px rgba(15, 23, 42, 0.04)",
+                          padding: 12,
+                          borderRadius: 14,
+                          border: "1px solid #E2E8F0",
+                          background: "#FFFFFF",
                         }}
                       >
-                        <div
-                          style={{
-                            width: 42,
-                            height: 42,
-                            borderRadius: "50%",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            background: `hsl(${hue}, 65%, 45%)`,
-                            color: "#ffffff",
-                            fontSize: 13,
-                            fontWeight: 700,
-                          }}
-                        >
-                          {getInitials(participant.name)}
+                        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                          <div
+                            style={{
+                              width: 40,
+                              height: 40,
+                              borderRadius: "50%",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              background: `hsl(${hue}, 65%, 50%)`,
+                              color: "#ffffff",
+                              fontSize: 13,
+                              fontWeight: 700,
+                            }}
+                          >
+                            {getInitials(participant.name)}
+                          </div>
+
+                          <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                            <span style={{ fontSize: 15, fontWeight: 500, color: "#0A0A0A" }}>
+                              {participant.name}
+                            </span>
+                            <span style={{ fontSize: 13, color: "#64748B" }}>
+                              {isCurrentUser ? "You" : "Participant"}
+                            </span>
+                          </div>
                         </div>
 
-                        <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                          <span style={{ fontSize: 15, fontWeight: 700, color: "#1e293b" }}>
-                            {participant.name}
-                          </span>
-                          <span style={{ fontSize: 13, color: "#64748b" }}>
-                            {isCurrentUser ? "You" : "Participant"}
-                          </span>
-                        </div>
+                        <div
+                          style={{
+                            width: 9,
+                            height: 9,
+                            borderRadius: "50%",
+                            background: "#22C55E",
+                            flexShrink: 0,
+                          }}
+                        />
                       </div>
                     );
                   })
@@ -860,13 +876,6 @@ export default function Editor() {
                 }}
               />
             )}
-          </div>
-
-          <div style={pageStyles.outputPanel}>
-            {runOutput.map((line, index) => (
-              <div key={`${index}-${line}`}>{line}</div>
-            ))}
-            {runError ? <div style={{ color: "#fca5a5", marginTop: 8 }}>Error: {runError}</div> : null}
           </div>
         </section>
       </div>
