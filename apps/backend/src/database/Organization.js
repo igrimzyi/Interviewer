@@ -17,6 +17,11 @@ const Organization = sequelize.define(
         len: [1, 255],
       },
     },
+    nameNormalized: {
+      type: DataTypes.STRING(255),
+      allowNull: false,
+      unique: true,
+    },
     size: {
       type: DataTypes.ENUM('1-10', '11-50', '51-200', '201-500', '501-1000', '1000+'),
       allowNull: true,
@@ -31,5 +36,11 @@ const Organization = sequelize.define(
     timestamps: true,
   }
 );
+
+Organization.beforeValidate((org) => {
+  if (org.name) {
+    org.nameNormalized = String(org.name).trim().toLowerCase();
+  }
+});
 
 export default Organization;
