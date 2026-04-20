@@ -12,6 +12,7 @@ import { AuthProvider } from "./context/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
 import QuestionPage from "./pages/QuestionPage";
 import QuestionBank from "./pages/QuestionBank";
+import NotFound from "./pages/NotFound";
 
 function App() {
   return (
@@ -67,7 +68,7 @@ function App() {
               </ProtectedRoute>
             }
           />
-
+          <Route path="*" element={<NotFound />} />
         </Routes>
       </div>
     </AuthProvider>
