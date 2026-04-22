@@ -100,6 +100,7 @@ const colors = {
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
   const { token, user } = useAuth();
+  const isInterviewer = user?.role === "interviewer";
 
   const [sessions, setSessions] = useState<ApiSession[]>([]);
   const [activities, setActivities] = useState<ApiActivity[]>([]);
@@ -189,14 +190,46 @@ const Dashboard: React.FC = () => {
               }}
             >
               {[
-                { title: "New Interview", subtitle: "Schedule session", icon: <Plus size={20} />, color: "#2563EB", route: "/session/create" },
-                { title: "Invite Team", subtitle: "Add interviewers", icon: <Users size={20} />, color: "#7C3AED" },
-                { title: "Question Bank", subtitle: "Browse questions", icon: <FileCode size={20} />, color: "#16A34A", route: "/questions" },
-                { title: "Calendar", subtitle: "View schedule", icon: <Calendar size={20} />, color: "#EA580C" },
+                ...(isInterviewer
+                  ? [
+                      {
+                        title: "New Interview",
+                        subtitle: "Schedule session",
+                        icon: <Plus size={20} />,
+                        color: "#2563EB",
+                        route: "/session/create",
+                      },
+                    ]
+                  : []),
+                {
+                  title: "Invite Team",
+                  subtitle: "Add interviewers",
+                  icon: <Users size={20} />,
+                  color: "#7C3AED",
+                },
+                ...(isInterviewer
+                  ? [
+                      {
+                        title: "Question Bank",
+                        subtitle: "Browse questions",
+                        icon: <FileCode size={20} />,
+                        color: "#16A34A",
+                        route: "/questions",
+                      },
+                    ]
+                  : []),
+                {
+                  title: "Calendar",
+                  subtitle: "View schedule",
+                  icon: <Calendar size={20} />,
+                  color: "#EA580C",
+                },
               ].map((card, i) => (
                 <div
                   key={i}
-                  onClick={() => { if (card.route) navigate(card.route); }}
+                  onClick={() => {
+                    if (card.route) navigate(card.route);
+                  }}
                   style={{
                     background: "white",
                     padding: 20,
@@ -225,7 +258,9 @@ const Dashboard: React.FC = () => {
                   </div>
                   <div>
                     <div style={{ fontWeight: 500 }}>{card.title}</div>
-                    <div style={{ fontSize: 14, color: "#64748B" }}>{card.subtitle}</div>
+                    <div style={{ fontSize: 14, color: "#64748B" }}>
+                      {card.subtitle}
+                    </div>
                   </div>
                 </div>
               ))}
@@ -250,11 +285,17 @@ const Dashboard: React.FC = () => {
                   boxShadow: "0 2px 8px rgba(15,23,43,0.04)",
                 }}
               >
-                <h3 style={{ fontWeight: 500, fontSize: 20 }}>Upcoming Interviews</h3>
-                <p style={{ color: "#64748B", marginBottom: 20 }}>Your scheduled interview sessions</p>
+                <h3 style={{ fontWeight: 500, fontSize: 20 }}>
+                  Upcoming Interviews
+                </h3>
+                <p style={{ color: "#64748B", marginBottom: 20 }}>
+                  Your scheduled interview sessions
+                </p>
 
                 {upcomingSessions.length === 0 ? (
-                  <p style={{ color: "#64748B", fontSize: 14 }}>No upcoming sessions.</p>
+                  <p style={{ color: "#64748B", fontSize: 14 }}>
+                    No upcoming sessions.
+                  </p>
                 ) : (
                   upcomingSessions.map((session) => (
                     <div
@@ -293,8 +334,14 @@ const Dashboard: React.FC = () => {
                                 fontSize: 12,
                                 padding: "4px 8px",
                                 borderRadius: 20,
-                                background: session.status === "scheduled" ? "#DBEAFE" : "#E2E8F0",
-                                color: session.status === "scheduled" ? colors.blue : colors.charcoal,
+                                background:
+                                  session.status === "scheduled"
+                                    ? "#DBEAFE"
+                                    : "#E2E8F0",
+                                color:
+                                  session.status === "scheduled"
+                                    ? colors.blue
+                                    : colors.charcoal,
                               }}
                             >
                               {session.status}
@@ -308,7 +355,13 @@ const Dashboard: React.FC = () => {
                               : "TBD"}
                           </div>
 
-                          <div style={{ fontSize: 14, color: "#64748B", marginTop: 4 }}>
+                          <div
+                            style={{
+                              fontSize: 14,
+                              color: "#64748B",
+                              marginTop: 4,
+                            }}
+                          >
                             Question: {session.question?.title ?? "No question selected"}
                           </div>
 
