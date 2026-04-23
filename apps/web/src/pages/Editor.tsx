@@ -310,6 +310,8 @@ export default function Editor() {
   const wsRef = useRef<WebSocket | null>(null);
   const isRemoteChange = useRef(false);
   const sessionStartedAt = useRef(Date.now());
+  const sessionIdRef = useRef<string | null>(null);
+  const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const [connectedUsers, setConnectedUsers] = useState<ConnectedUser[]>([]);
   const [status, setStatus] = useState<"connecting" | "connected" | "disconnected">(
@@ -324,6 +326,7 @@ export default function Editor() {
   ]);
   const [runError, setRunError] = useState<string | null>(null);
   const [isRunning, setIsRunning] = useState(false);
+  const [initialCode, setInitialCode] = useState("// Start coding here\n");
 
   const handleEditorMount: OnMount = useCallback((editorInstance) => {
     editorRef.current = editorInstance;
@@ -334,7 +337,23 @@ export default function Editor() {
     if (wsRef.current?.readyState === WebSocket.OPEN) {
       wsRef.current.send(JSON.stringify({ type: "code", value: value ?? "" }));
     }
-  }, []);
+    if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+    saveTimeoutRef.current = setTimeout(async () => {
+      if (!sessionIdRef.current || !token) return;
+      try {
+        await fetch(`/api/sessions/${sessionIdRef.current}/code/save`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ currentCode: value ?? "" }),
+        });
+      } catch {
+        // non-fatal — next keystroke will retry
+      }
+    }, 2000);
+  }, [token]);
 
   const resetCode = useCallback(() => {
     if (!editorRef.current) return;
@@ -422,6 +441,10 @@ export default function Editor() {
           return;
         }
 
+        sessionIdRef.current = data.id;
+        const code = data.currentCode ?? data.question.starterCode ?? "// Start coding here\n";
+        setInitialCode(code);
+
         setSessionQuestion({
           id: data.question.id,
           title: data.question.title,
@@ -491,6 +514,12 @@ export default function Editor() {
       ws.close();
     };
   }, [sessionCode, token]);
+
+  useEffect(() => {
+    return () => {
+      if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+    };
+  }, []);
 
   const statusColor =
     status === "connected" ? "#16a34a" : status === "connecting" ? "#d97706" : "#dc2626";
@@ -844,7 +873,7 @@ export default function Editor() {
                 height="100%"
                 language="javascript"
                 theme="vs-dark"
-                defaultValue="// Start coding here\n"
+                value={initialCode}
                 onMount={handleEditorMount}
                 onChange={handleEditorChange}
                 options={{
