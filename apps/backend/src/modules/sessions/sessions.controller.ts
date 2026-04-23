@@ -224,6 +224,38 @@ export async function getJoinSessionPreview(req: AuthRequest, res: Response) {
   }
 }
 
+// POST /api/sessions/:id/code/save
+export async function saveCurrentCode(req: AuthRequest, res: Response) {
+  const { id } = req.params;
+  const { currentCode } = req.body;
+
+  if (typeof currentCode !== 'string') {
+    return res.status(400).json({ message: 'currentCode must be a string.' });
+  }
+
+  try {
+    const session = await (Session as any).findByPk(id);
+
+    if (!session) {
+      return res.status(404).json({ message: 'Session not found.' });
+    }
+
+    const canAccess =
+      session.interviewerId === req.user!.userId || session.intervieweeId === req.user!.userId;
+
+    if (!canAccess) {
+      return res.status(403).json({ message: 'You do not have access to this session.' });
+    }
+
+    await session.update({ currentCode });
+
+    return res.json({ message: 'Code saved.' });
+  } catch (err) {
+    console.error('saveCurrentCode error:', err);
+    return res.status(500).json({ message: 'Failed to save code.' });
+  }
+}
+
 // GET /api/activity
 // Returns recent sessions for the logged-in user as activity items
 export async function getMyActivity(req: AuthRequest, res: Response) {
