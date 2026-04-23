@@ -2,7 +2,7 @@ import { Router } from "express";
 import { getHealth } from "./modules/health/health.controller";
 import { register, login } from "./modules/auth/auth.controller.js";
 import { requireAuth, AuthRequest } from "./middlewares/auth.js";
-import { getMySessions, getMyActivity, createSession, getSessionByCode, getJoinSessionPreview } from "./modules/sessions/sessions.controller.js";
+import { getMySessions, getMyActivity, createSession, getSessionByCode, getJoinSessionPreview, saveCurrentCode } from "./modules/sessions/sessions.controller.js";
 import { Response } from "express";
 import { runJavaScript } from "./modules/code/code.controller.js";
 import { createQuestion, getQuestions } from "./modules/questions/questions.controller.js";
@@ -26,5 +26,6 @@ router.get("/api/activity", requireAuth, getMyActivity);
 router.post("/api/questions", requireAuth, createQuestion);
 router.get("/api/questions", requireAuth, getQuestions);
 router.post("/api/code/run", requireAuth, runJavaScript);
+router.post("/api/sessions/:id/code/save", requireAuth, saveCurrentCode);
 
 export default router;
