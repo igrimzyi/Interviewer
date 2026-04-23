@@ -2,7 +2,7 @@ import { WebSocketServer, WebSocket } from 'ws';
 import { IncomingMessage, Server } from 'http';
 import jwt from 'jsonwebtoken';
 import { parse } from 'url';
-import { User } from '../../database/index.js';
+import { Session, User } from '../../database/index.js';
 
 const JWT_SECRET = process.env.JWT_SECRET ?? 'dev-secret-change-me';
 
@@ -97,10 +97,22 @@ export function attachEditorWS(server: Server) {
       // non-fatal, keep default name
     }
 
-    // Get or create in-memory session state
+    // Get or create in-memory session state, seeding from DB on first connection
     if (!sessions.has(sessionCode)) {
+      let initialCode = '// Start coding here\n';
+      try {
+        const dbSession = await (Session as any).findOne({
+          where: { sessionCode },
+          include: [{ association: 'question', attributes: ['starterCode'] }],
+        });
+        if (dbSession) {
+          initialCode = dbSession.currentCode ?? dbSession.question?.starterCode ?? initialCode;
+        }
+      } catch {
+        // non-fatal, fall back to default
+      }
       sessions.set(sessionCode, {
-        code: '// Start coding here\n',
+        code: initialCode,
         language: 'javascript',
         clients: new Set(),
       });
