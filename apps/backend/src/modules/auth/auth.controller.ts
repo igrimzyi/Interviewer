@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
-import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { User, Role, Organization } from '../../database/index.js';
+import { hashPassword, comparePassword } from '../../lib/password.js';
 
 const JWT_SECRET = process.env.JWT_SECRET ?? 'dev-secret-change-me';
 const JWT_EXPIRES_IN = '7d';
@@ -35,7 +35,7 @@ export async function register(req: Request, res: Response) {
 
     const [role] = await (Role as any).findOrCreate({ where: { role: accountType } });
 
-    const passwordHash = await bcrypt.hash(password, 10);
+    const passwordHash = await hashPassword(password);
 
     let organizationId: string | null = null;
 
@@ -97,7 +97,7 @@ export async function login(req: Request, res: Response) {
       return res.status(401).json({ message: 'Invalid email or password.' });
     }
 
-    const valid = await bcrypt.compare(password, user.passwordHash);
+    const valid = await comparePassword(password, user.passwordHash);
     if (!valid) {
       return res.status(401).json({ message: 'Invalid email or password.' });
     }

@@ -22,6 +22,7 @@ type FormState = {
   time: string;
   questionId: string;
   notes: string;
+  password: string;
 };
 
 type QuestionOption = {
@@ -38,14 +39,15 @@ export default function Session() {
   const { token } = useAuth();
 
   const [form, setForm] = useState<FormState>({
-    candidateName: "",
-    candidateEmail: "",
-    position: "",
-    date: "",
-    time: "",
-    questionId: "",
-    notes: "",
-  });
+  candidateName: "",
+  candidateEmail: "",
+  position: "",
+  date: "",
+  time: "",
+  questionId: "",
+  notes: "",
+  password: "",
+});
 
   const [questions, setQuestions] = useState<QuestionOption[]>([]);
   const [questionsLoading, setQuestionsLoading] = useState(true);
@@ -87,8 +89,13 @@ export default function Session() {
   }
 
   async function handleSubmit() {
-    if (!form.position || !form.date || !form.time || !form.questionId) {
-      setError("Position, date, time, and question are required.");
+    if (!form.position || !form.date || !form.time || !form.questionId || !form.password) {
+      setError("Position, date, time, question, and session password are required.");
+      return;
+    }
+
+    if (form.password.length < 8) {
+      setError("Session password must be at least 8 characters.");
       return;
     }
 
@@ -110,6 +117,7 @@ export default function Session() {
           time: form.time,
           questionId: form.questionId,
           notes: form.notes,
+          password: form.password,
         }),
       });
 
