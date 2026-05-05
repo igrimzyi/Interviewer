@@ -1,7 +1,8 @@
 import { Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { User, Role, Organization } from '../../database/index.js';
+import { Transaction, UniqueConstraintError } from 'sequelize';
+import { sequelize, User, Role, Organization } from '../../database/index.js';
 
 const JWT_SECRET = process.env.JWT_SECRET ?? 'dev-secret-change-me';
 const JWT_EXPIRES_IN = '7d';
@@ -33,32 +34,74 @@ export async function register(req: Request, res: Response) {
       return res.status(409).json({ message: 'An account with this email already exists.' });
     }
 
-    const [role] = await (Role as any).findOrCreate({ where: { role: accountType } });
-
     const passwordHash = await bcrypt.hash(password, 10);
 
-    let organizationId: string | null = null;
-
-    if (accountType === 'interviewer') {
-      const org = await (Organization as any).create({
-        name: organization.name,
-        size: organization.size ?? null,
-        industry: organization.industry ?? null,
+    const payload = await sequelize.transaction(async (transaction) => {
+      const [role] = await (Role as any).findOrCreate({
+        where: { role: accountType },
+        transaction,
       });
-      organizationId = org.id;
-    }
 
-    const user = await (User as any).create({
-      firstName,
-      lastName,
-      email,
-      passwordHash,
-      roleId: role.id,
-      organizationId,
+      let organizationId: string | null = null;
+
+      if (accountType === 'interviewer') {
+        const nameNorm = String(organization.name).trim().toLowerCase();
+        if (!nameNorm) {
+          const err: any = new Error('Organization name is required.');
+          err.status = 400;
+          throw err;
+        }
+
+        let org = await (Organization as any).findOne({
+          where: { nameNormalized: nameNorm },
+          transaction,
+          lock: Transaction.LOCK.UPDATE,
+        });
+
+        if (!org) {
+          org = await (Organization as any).create(
+            {
+              name: String(organization.name).trim(),
+              size: organization.size ?? null,
+              industry: organization.industry ?? null,
+            },
+            { transaction }
+          );
+        }
+
+        const interviewerCount = await (User as any).count({
+          where: { organizationId: org.id, roleId: role.id },
+          transaction,
+        });
+
+        if (interviewerCount > 0) {
+          const err: any = new Error(
+            'An interviewer has already registered for this organization.'
+          );
+          err.status = 409;
+          throw err;
+        }
+
+        organizationId = org.id;
+      }
+
+      const user = await (User as any).create(
+        {
+          firstName,
+          lastName,
+          email,
+          passwordHash,
+          roleId: role.id,
+          organizationId,
+        },
+        { transaction }
+      );
+
+      return { user, organizationId };
     });
 
     const token = jwt.sign(
-      { userId: user.id, email: user.email, roleId: user.roleId },
+      { userId: payload.user.id, email: payload.user.email, roleId: payload.user.roleId },
       JWT_SECRET,
       { expiresIn: JWT_EXPIRES_IN }
     );
@@ -66,15 +109,23 @@ export async function register(req: Request, res: Response) {
     return res.status(201).json({
       token,
       user: {
-        id: user.id,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        email: user.email,
+        id: payload.user.id,
+        firstName: payload.user.firstName,
+        lastName: payload.user.lastName,
+        email: payload.user.email,
         role: accountType,
-        organizationId,
+        organizationId: payload.organizationId,
       },
     });
   } catch (err: any) {
+    if (err?.status === 409 || err?.status === 400) {
+      return res.status(err.status).json({ message: err.message });
+    }
+    if (err instanceof UniqueConstraintError) {
+      return res.status(409).json({
+        message: 'An interviewer has already registered for this organization.',
+      });
+    }
     console.error('Register error:', err);
     return res.status(500).json({ message: 'Registration failed. Please try again.' });
   }
