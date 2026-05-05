@@ -9,6 +9,7 @@ import {
   Calendar,
   Clock,
   ChevronRight,
+  BarChart2,
 } from "lucide-react";
 
 /* ===============================
@@ -215,6 +216,13 @@ const Dashboard: React.FC = () => {
                         icon: <FileCode size={20} />,
                         color: "#16A34A",
                         route: "/questions",
+                      },
+                      {
+                        title: "Analytics",
+                        subtitle: "Compare interviews",
+                        icon: <BarChart2 size={20} />,
+                        color: "#0891B2",
+                        route: "/analytics",
                       },
                     ]
                   : []),
