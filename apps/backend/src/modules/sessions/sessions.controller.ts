@@ -157,6 +157,49 @@ export async function getSessionByCode(req: AuthRequest, res: Response) {
   }
 }
 
+// POST /api/sessions/:sessionCode/submit
+export async function submitSessionCode(req: AuthRequest, res: Response) {
+  const { submittedCode } = req.body;
+
+  if(typeof submittedCode !== 'string' || submittedCode.trim() === '') {
+    return res.status(400).json({ message: 'Submitted code is required.' });
+  }
+
+  try {
+    const session = await (Session as any).findOne({
+      where: { sessionCode: req.params.sessionCode },
+    });
+
+    if (!session) {
+      return res.status(404).json({ message: 'Session not found.' });
+    }
+
+    const canAccess =
+      session.interviewerId === req.user!.userId || session.intervieweeId === req.user!.userId;
+
+    if (!canAccess) {
+      return res.status(403).json({ message: 'You do not have access to this session.' });
+    }
+
+    if (session.submittedCode !== null) {
+      return res.status(400).json({ message: 'Code has already been submitted.' });
+    }
+
+    session.submittedCode = submittedCode;
+    session.currentCode = submittedCode;
+    session.status = 'completed';
+    await session.save();
+
+    return res.json({
+      message: 'Code submitted successfully.',
+      submittedCode: session.submittedCode,
+    });
+  } catch (err) {
+    console.error('submitSessionCode error:', err);
+    return res.status(500).json({ message: 'Failed to submit code.' });
+  }
+}
+
 // GET /api/sessions/join/:identifier
 export async function getJoinSessionPreview(req: AuthRequest, res: Response) {
   try {

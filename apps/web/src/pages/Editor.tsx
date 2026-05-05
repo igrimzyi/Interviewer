@@ -324,20 +324,29 @@ export default function Editor() {
   ]);
   const [runError, setRunError] = useState<string | null>(null);
   const [isRunning, setIsRunning] = useState(false);
+  
+  const [submittedCode, setSubmittedCode] = useState<string | null>(null);
+  const isSubmitted = submittedCode !== null;
 
   const handleEditorMount: OnMount = useCallback((editorInstance) => {
     editorRef.current = editorInstance;
-  }, []);
+    if (submittedCode !== null) {
+      isRemoteChange.current = true;
+      editorInstance.setValue(submittedCode ?? "// Start coding here\n");
+      isRemoteChange.current = false;
+    }
+  }, [submittedCode]);
 
   const handleEditorChange = useCallback((value: string | undefined) => {
-    if (isRemoteChange.current) return;
+    if (isRemoteChange.current || isSubmitted) return;
+
     if (wsRef.current?.readyState === WebSocket.OPEN) {
       wsRef.current.send(JSON.stringify({ type: "code", value: value ?? "" }));
     }
-  }, []);
+  }, [isSubmitted]);
 
   const resetCode = useCallback(() => {
-    if (!editorRef.current) return;
+    if (!editorRef.current || isSubmitted) return;
     isRemoteChange.current = true;
     editorRef.current.setValue("// Start coding here\n");
     isRemoteChange.current = false;
@@ -347,7 +356,7 @@ export default function Editor() {
     if (wsRef.current?.readyState === WebSocket.OPEN) {
       wsRef.current.send(JSON.stringify({ type: "code", value: "// Start coding here\n" }));
     }
-  }, []);
+  }, [isSubmitted]);
 
   const runCode = useCallback(async () => {
     if (!token || !editorRef.current || !sessionCode) return;
@@ -390,6 +399,35 @@ export default function Editor() {
     }
   }, [sessionCode, token]);
 
+const handleSubmitCode = useCallback(async () => {
+  if (!token || !editorRef.current || !sessionCode || isSubmitted) return;
+
+  const code = editorRef.current.getValue();
+
+  try {
+    const response = await fetch(`/api/sessions/${sessionCode}/submit`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ 
+        submittedCode: code }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      setRunError(typeof data.message === "string" ? data.message : data.error ?? "Submit failed.");
+      return;
+    }
+
+    setSubmittedCode(code);
+  } catch {
+    setRunError("Unable to submit code. Please try again.");
+  }
+}, [sessionCode, token, isSubmitted]);
+
   useEffect(() => {
     const interval = window.setInterval(() => {
       setElapsedTime(formatElapsedTime(sessionStartedAt.current));
@@ -431,6 +469,17 @@ export default function Editor() {
           constraints: data.question.constraints,
           examples: Array.isArray(data.question.examples) ? data.question.examples : [],
         });
+
+        if(typeof data.submittedCode === "string" && data.submittedCode.trim() !== "") {
+          setSubmittedCode(data.submittedCode);
+
+          if(editorRef.current){
+            isRemoteChange.current = true;
+            editorRef.current.setValue(data.submittedCode);
+            isRemoteChange.current = false;
+          }
+
+        }
       } catch {
         // Keep the fallback prompt when the question cannot be loaded.
       }
@@ -796,7 +845,7 @@ export default function Editor() {
                 JavaScript
               </div>
 
-              <button style={pageStyles.ghostButton} onClick={resetCode}>
+              <button style={pageStyles.ghostButton} onClick={resetCode} disabled={isSubmitted}>
                 <RotateCcw size={15} />
                 Reset
               </button>
@@ -807,9 +856,9 @@ export default function Editor() {
                 <Play size={15} />
                 {isRunning ? "Running..." : "Run Code"}
               </button>
-              <button style={pageStyles.lightButton} type="button">
+              <button style={pageStyles.lightButton} type="button" onClick={handleSubmitCode} disabled={isSubmitted}>
                 <Check size={15} />
-                Submit
+                {isSubmitted ? "Submitted" : "Submit"}
               </button>
             </div>
           </div>
@@ -857,6 +906,7 @@ export default function Editor() {
                   padding: { top: 16 },
                   lineNumbersMinChars: 3,
                   glyphMargin: false,
+                  readOnly: isSubmitted,
                 }}
               />
             )}

@@ -2,7 +2,7 @@ import { Router } from "express";
 import { getHealth } from "./modules/health/health.controller";
 import { register, login } from "./modules/auth/auth.controller.js";
 import { requireAuth, AuthRequest } from "./middlewares/auth.js";
-import { getMySessions, getMyActivity, createSession, getSessionByCode, getJoinSessionPreview } from "./modules/sessions/sessions.controller.js";
+import { getMySessions, getMyActivity, createSession, getSessionByCode, getJoinSessionPreview, submitSessionCode} from "./modules/sessions/sessions.controller.js";
 import { Response } from "express";
 import { runJavaScript } from "./modules/code/code.controller.js";
 import { createQuestion, getQuestions } from "./modules/questions/questions.controller.js";
@@ -22,6 +22,7 @@ router.get("/api/me", requireAuth, (req: AuthRequest, res: Response) => {
 router.post("/api/sessions", requireAuth, createSession);
 router.get("/api/sessions", requireAuth, getMySessions);
 router.get("/api/sessions/:sessionCode", requireAuth, getSessionByCode);
+router.post("/api/sessions/:sessionCode/submit", requireAuth, submitSessionCode);
 router.get("/api/activity", requireAuth, getMyActivity);
 router.post("/api/questions", requireAuth, createQuestion);
 router.get("/api/questions", requireAuth, getQuestions);
