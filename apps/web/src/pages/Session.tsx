@@ -22,6 +22,7 @@ type FormState = {
   time: string;
   questionId: string;
   notes: string;
+  password: string;
 };
 
 type QuestionOption = {
@@ -30,7 +31,7 @@ type QuestionOption = {
   difficulty: "easy" | "medium" | "hard";
   category: string;
   description: string;
-  testCaseCount: number;
+  testCaseCount?: number;
 };
 
 export default function Session() {
@@ -45,6 +46,7 @@ export default function Session() {
     time: "",
     questionId: "",
     notes: "",
+    password: "",
   });
 
   const [questions, setQuestions] = useState<QuestionOption[]>([]);
@@ -87,8 +89,13 @@ export default function Session() {
   }
 
   async function handleSubmit() {
-    if (!form.position || !form.date || !form.time || !form.questionId) {
-      setError("Position, date, time, and question are required.");
+    if (!form.position || !form.date || !form.time || !form.questionId || !form.password) {
+      setError("Position, date, time, question, and session password are required.");
+      return;
+    }
+
+    if (form.password.length < 8) {
+      setError("Session password must be at least 8 characters.");
       return;
     }
 
@@ -110,6 +117,7 @@ export default function Session() {
           time: form.time,
           questionId: form.questionId,
           notes: form.notes,
+          password: form.password,
         }),
       });
 
@@ -133,8 +141,6 @@ export default function Session() {
       <LoggedInNavbar />
 
       <div style={{ maxWidth: 900, margin: "0 auto", padding: "32px 20px" }}>
-
-        {/* BACK */}
         <div
           onClick={() => navigate("/dashboard")}
           style={{
@@ -151,7 +157,6 @@ export default function Session() {
           Back to Dashboard
         </div>
 
-        {/* HEADER */}
         <h1 style={{ fontSize: 28, fontWeight: 500, color: colors.black }}>
           Create Interview Session
         </h1>
@@ -160,9 +165,6 @@ export default function Session() {
           Set up a new interview session and invite your candidate
         </p>
 
-        {/* =========================
-            Candidate Information
-        ========================= */}
         <div
           style={{
             background: "white",
@@ -224,9 +226,6 @@ export default function Session() {
           </div>
         </div>
 
-        {/* =========================
-            Session Details
-        ========================= */}
         <div
           style={{
             background: "white",
@@ -275,9 +274,6 @@ export default function Session() {
           </div>
         </div>
 
-        {/* =========================
-            Question Set
-        ========================= */}
         <div
           style={{
             background: "white",
@@ -287,9 +283,7 @@ export default function Session() {
             marginBottom: 20,
           }}
         >
-          <div style={{ fontWeight: 500, marginBottom: 10 }}>
-            Question Set
-          </div>
+          <div style={{ fontWeight: 500, marginBottom: 10 }}>Question Set</div>
 
           <p style={{ fontSize: 13, color: colors.charcoal, marginBottom: 14 }}>
             Choose the questions for this interview
@@ -357,7 +351,10 @@ export default function Session() {
                   </div>
 
                   <div style={{ fontSize: 13, color: colors.charcoal, marginBottom: 6 }}>
-                    {question.category} • {question.testCaseCount} test cases
+                    {question.category}
+                    {typeof question.testCaseCount === "number"
+                      ? ` • ${question.testCaseCount} test cases`
+                      : ""}
                   </div>
 
                   <div style={{ fontSize: 13, color: "#64748B", lineHeight: 1.5 }}>
@@ -369,9 +366,30 @@ export default function Session() {
           )}
         </div>
 
-        {/* =========================
-            Notes
-        ========================= */}
+        <div
+          style={{
+            background: "white",
+            border: `1px solid ${colors.lightGray}`,
+            borderRadius: 16,
+            padding: 20,
+            marginBottom: 20,
+          }}
+        >
+          <div style={{ fontWeight: 500, marginBottom: 10 }}>Session Password</div>
+
+          <p style={{ fontSize: 13, color: colors.charcoal, marginBottom: 10 }}>
+            Create a password candidates will use to join this interview.
+          </p>
+
+          <input
+            className={inputClass}
+            type="password"
+            placeholder="Enter session password"
+            value={form.password}
+            onChange={(e) => set("password", e.target.value)}
+          />
+        </div>
+
         <div
           style={{
             background: "white",
@@ -402,9 +420,6 @@ export default function Session() {
           </p>
         )}
 
-        {/* =========================
-            ACTIONS
-        ========================= */}
         <div style={{ display: "flex", justifyContent: "flex-end", gap: 12 }}>
           <button
             onClick={() => navigate("/dashboard")}

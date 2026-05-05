@@ -2,6 +2,7 @@ import { Response } from 'express';
 import { Op } from 'sequelize';
 import { Question, Session, User } from '../../database/index.js';
 import { AuthRequest } from '../../middlewares/auth.js';
+import { hashPassword, comparePassword } from '../../lib/password.js';
 
 function generateSessionCode(): string {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
@@ -14,10 +15,18 @@ function generateSessionCode(): string {
 
 // POST /api/sessions
 export async function createSession(req: AuthRequest, res: Response) {
-  const { candidateEmail, position, date, time, notes, questionId } = req.body;
+  const { candidateEmail, position, date, time, notes, questionId, password } = req.body;
 
-  if (!position || !date || !time || !questionId) {
-    return res.status(400).json({ message: 'Position, date, time, and question are required.' });
+  if (!position || !date || !time || !questionId || !password) {
+    return res.status(400).json({
+      message: 'Position, date, time, question, and session password are required.',
+    });
+  }
+
+  if (typeof password !== 'string' || password.trim().length < 8) {
+    return res.status(400).json({
+      message: 'Session password must be at least 8 characters.',
+    });
   }
 
   try {
@@ -40,22 +49,27 @@ export async function createSession(req: AuthRequest, res: Response) {
     let intervieweeId: string | null = null;
     if (candidateEmail) {
       const interviewee = await (User as any).findOne({ where: { email: candidateEmail } });
-      if (interviewee) intervieweeId = interviewee.id;
+      if (interviewee) {
+        intervieweeId = interviewee.id;
+      }
     }
 
     const scheduledAt = new Date(`${date}T${time}`);
 
     let sessionCode = generateSessionCode();
-    // Ensure uniqueness
     let existing = await (Session as any).findOne({ where: { sessionCode } });
+
     while (existing) {
       sessionCode = generateSessionCode();
       existing = await (Session as any).findOne({ where: { sessionCode } });
     }
 
+    const passwordHash = await hashPassword(password.trim());
+
     const session = await (Session as any).create({
       sessionCode,
       title: position,
+      passwordHash,
       status: 'scheduled',
       questionId,
       scheduledAt,
@@ -65,7 +79,13 @@ export async function createSession(req: AuthRequest, res: Response) {
       currentCode: notes ?? null,
     });
 
-    return res.status(201).json(session);
+    return res.status(201).json({
+      id: session.id,
+      sessionCode: session.sessionCode,
+      title: session.title,
+      status: session.status,
+      scheduledAt: session.scheduledAt,
+    });
   } catch (err) {
     console.error('createSession error:', err);
     return res.status(500).json({ message: 'Failed to create session.' });
@@ -73,11 +93,11 @@ export async function createSession(req: AuthRequest, res: Response) {
 }
 
 // GET /api/sessions
-// Returns sessions where the logged-in user is the interviewer
 export async function getMySessions(req: AuthRequest, res: Response) {
   try {
     const sessions = await (Session as any).findAll({
       where: { interviewerId: req.user!.userId },
+      attributes: { exclude: ['passwordHash'] },
       include: [
         {
           model: Question,
@@ -107,6 +127,7 @@ export async function getSessionByCode(req: AuthRequest, res: Response) {
   try {
     const session = await (Session as any).findOne({
       where: { sessionCode: req.params.sessionCode },
+      attributes: { exclude: ['passwordHash'] },
       include: [
         {
           model: Question,
@@ -196,6 +217,7 @@ export async function getJoinSessionPreview(req: AuthRequest, res: Response) {
       title: session.title,
       status: session.status,
       scheduledAt: session.scheduledAt,
+      requiresPassword: true,
       interviewer: session.interviewer
         ? {
             firstName: session.interviewer.firstName,
@@ -224,8 +246,44 @@ export async function getJoinSessionPreview(req: AuthRequest, res: Response) {
   }
 }
 
+// POST /api/sessions/join/:identifier
+export async function validateSessionPassword(req: AuthRequest, res: Response) {
+  const { password } = req.body;
+
+  if (!password || typeof password !== 'string') {
+    return res.status(400).json({ message: 'Session password is required.' });
+  }
+
+  try {
+    const identifier = req.params.identifier;
+
+    const session = await (Session as any).findOne({
+      where: {
+        [Op.or]: [{ id: identifier }, { sessionCode: identifier }],
+      },
+    });
+
+    if (!session) {
+      return res.status(404).json({ message: 'Session not found.' });
+    }
+
+    const valid = await comparePassword(password, session.passwordHash);
+
+    if (!valid) {
+      return res.status(401).json({ message: 'Invalid session password.' });
+    }
+
+    return res.status(200).json({
+      message: 'Session password verified.',
+      sessionCode: session.sessionCode,
+    });
+  } catch (err) {
+    console.error('validateSessionPassword error:', err);
+    return res.status(500).json({ message: 'Failed to validate session password.' });
+  }
+}
+
 // GET /api/activity
-// Returns recent sessions for the logged-in user as activity items
 export async function getMyActivity(req: AuthRequest, res: Response) {
   try {
     const sessions = await (Session as any).findAll({
@@ -235,6 +293,7 @@ export async function getMyActivity(req: AuthRequest, res: Response) {
           { intervieweeId: req.user!.userId },
         ],
       },
+      attributes: { exclude: ['passwordHash'] },
       include: [
         {
           model: User,

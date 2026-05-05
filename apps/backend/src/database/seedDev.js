@@ -1,4 +1,3 @@
-import bcrypt from 'bcryptjs';
 import {
   syncDatabase,
   Organization,
@@ -8,8 +7,10 @@ import {
   TestCase,
   User,
 } from './index.js';
+import { hashPassword } from '../lib/password.js';
 
 const DEV_PASSWORD = 'Password123!';
+const DEV_SESSION_PASSWORD = 'Session123!';
 
 const questionFixtures = [
   {
@@ -154,7 +155,8 @@ async function run() {
       industry: 'Software',
     });
 
-    const passwordHash = await bcrypt.hash(DEV_PASSWORD, 10);
+    const passwordHash = await hashPassword(DEV_PASSWORD);
+    const sessionPasswordHash = await hashPassword(DEV_SESSION_PASSWORD);
 
     const interviewer = await User.create({
       firstName: 'Iris',
@@ -186,53 +188,57 @@ async function run() {
     const questions = await createQuestions(interviewer.id, organization.id);
 
     await Session.bulkCreate([
-      {
-        sessionCode: 'DEV12345',
-        title: 'Frontend Engineer Screen',
-        status: 'scheduled',
-        questionId: questions[0].id,
-        interviewerId: interviewer.id,
-        intervieweeId: interviewee.id,
-        organizationId: organization.id,
-        scheduledAt: new Date('2026-04-02T17:00:00.000Z'),
-        selectedLanguage: 'JavaScript',
-        currentCode: '// Candidate warm-up notes',
-      },
-      {
-        sessionCode: 'PAIR6789',
-        title: 'Algorithms Deep Dive',
-        status: 'active',
-        questionId: questions[1].id,
-        interviewerId: interviewer.id,
-        intervieweeId: extraInterviewee.id,
-        organizationId: organization.id,
-        scheduledAt: new Date('2026-04-03T19:00:00.000Z'),
-        startedAt: new Date('2026-04-03T19:05:00.000Z'),
-        selectedLanguage: 'TypeScript',
-        currentCode: 'function merge(intervals) {\n  return intervals;\n}\n',
-      },
-      {
-        sessionCode: 'HIRED001',
-        title: 'Senior Platform Interview',
-        status: 'completed',
-        questionId: questions[2].id,
-        interviewerId: interviewer.id,
-        intervieweeId: interviewee.id,
-        organizationId: organization.id,
-        scheduledAt: new Date('2026-03-20T18:00:00.000Z'),
-        startedAt: new Date('2026-03-20T18:03:00.000Z'),
-        endedAt: new Date('2026-03-20T18:58:00.000Z'),
-        selectedLanguage: 'JavaScript',
-        currentCode: 'class LRUCache {\n  constructor(capacity) {}\n}\n',
-        submittedCode:
-          'class LRUCache {\n  constructor(capacity) {\n    this.capacity = capacity;\n  }\n}\n',
-      },
-    ]);
+  {
+    sessionCode: 'DEV12345',
+    title: 'Frontend Engineer Screen',
+    passwordHash: sessionPasswordHash,
+    status: 'scheduled',
+    questionId: questions[0].id,
+    interviewerId: interviewer.id,
+    intervieweeId: interviewee.id,
+    organizationId: organization.id,
+    scheduledAt: new Date('2026-04-02T17:00:00.000Z'),
+    selectedLanguage: 'JavaScript',
+    currentCode: '// Candidate warm-up notes',
+  },
+  {
+    sessionCode: 'PAIR6789',
+    title: 'Algorithms Deep Dive',
+    passwordHash: sessionPasswordHash,
+    status: 'active',
+    questionId: questions[1].id,
+    interviewerId: interviewer.id,
+    intervieweeId: extraInterviewee.id,
+    organizationId: organization.id,
+    scheduledAt: new Date('2026-04-03T19:00:00.000Z'),
+    startedAt: new Date('2026-04-03T19:05:00.000Z'),
+    selectedLanguage: 'TypeScript',
+    currentCode: 'function merge(intervals) {\n  return intervals;\n}\n',
+  },
+  {
+    sessionCode: 'HIRED001',
+    title: 'Senior Platform Interview',
+    passwordHash: sessionPasswordHash,
+    status: 'completed',
+    questionId: questions[2].id,
+    interviewerId: interviewer.id,
+    intervieweeId: interviewee.id,
+    organizationId: organization.id,
+    scheduledAt: new Date('2026-03-20T18:00:00.000Z'),
+    startedAt: new Date('2026-03-20T18:03:00.000Z'),
+    endedAt: new Date('2026-03-20T18:58:00.000Z'),
+    selectedLanguage: 'JavaScript',
+    currentCode: 'class LRUCache {\n  constructor(capacity) {}\n}\n',
+    submittedCode:
+      'class LRUCache {\n  constructor(capacity) {\n    this.capacity = capacity;\n  }\n}\n',
+  },
+]);
 
     console.log('Dev database ready.');
     console.log(`Interviewer login: interviewer@acme.dev / ${DEV_PASSWORD}`);
     console.log(`Interviewee login: candidate@acme.dev / ${DEV_PASSWORD}`);
     console.log('Sample join codes: DEV12345, PAIR6789, HIRED001');
+    console.log(`Session password: ${DEV_SESSION_PASSWORD}`);
     process.exit(0);
   } catch (error) {
     console.error('Dev seed failed:', error);

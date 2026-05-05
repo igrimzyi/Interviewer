@@ -19,6 +19,10 @@ const Session = sequelize.define(
       type: DataTypes.STRING(255),
       allowNull: false,
     },
+    passwordHash: {
+      type: DataTypes.STRING(255),
+      allowNull: false,
+    },
     status: {
       type: DataTypes.ENUM('scheduled', 'active', 'completed', 'cancelled'),
       allowNull: false,
@@ -88,4 +92,4 @@ const Session = sequelize.define(
   }
 );
 
-export default Session
+export default Session;

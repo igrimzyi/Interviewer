@@ -6,7 +6,6 @@ import {
   User,
   Calendar,
   Clock4,
-  CircleAlert,
 } from "lucide-react";
 import { buttonStyles } from "../styles/shared";
 import { useNavigate, useParams } from "react-router-dom";
@@ -89,25 +88,21 @@ function InfoCard({ interview }: Props) {
 
   return (
     <div className="flex flex-col bg-neutral-100 rounded-2xl p-4 gap-4 items-center justify-center w-full">
-      <div className="grid grid-cols-2 gap-4 items-center justify-center w-full">
+      <div className="grid grid-cols-2 gap-4 w-full">
         {fields.map((field) => {
           const Icon = field.icon;
           let val: string;
 
-          if (field.key === "start") {
-            val = formattedDate;
-          } else if (field.key === "time") {
-            val = formattedTime;
-          } else {
-            val = interview[field.key as keyof Interview] as string;
-          }
+          if (field.key === "start") val = formattedDate;
+          else if (field.key === "time") val = formattedTime;
+          else val = interview[field.key as keyof Interview] as string;
 
           return (
             <div className="flex gap-2" key={field.key}>
-              <div className="flex items-center justify-center bg-white border border-border shadow-sm p-2 rounded-xl h-9 w-9">
+              <div className="flex items-center justify-center bg-white border p-2 rounded-xl h-9 w-9">
                 <Icon className="h-4 w-4" />
               </div>
-              <div className="flex flex-col gap-1">
+              <div>
                 <h3 className="text-xs text-gray-500">{field.label}</h3>
                 <span className="text-xs">{val}</span>
               </div>
@@ -141,40 +136,96 @@ function InfoCard({ interview }: Props) {
   );
 }
 
-function JoinAction({ interview, isSignedIn }: Props & { isSignedIn: boolean }) {
+function JoinAction({ isSignedIn }: { isSignedIn: boolean }) {
   const navigate = useNavigate();
+  const { id } = useParams();
 
-  function handleSubmit(e: FormEvent<HTMLFormElement>) {
+  const [password, setPassword] = useState("");
+  const [joinError, setJoinError] = useState("");
+  const [isJoining, setIsJoining] = useState(false);
+
+  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    setJoinError("");
 
-    if (isSignedIn) {
-      navigate(`/editor/${interview.sessionID}`);
+    if (!isSignedIn) {
+      navigate("/login");
       return;
     }
 
-    navigate("/login");
+    if (!password.trim()) {
+      setJoinError("Session password is required.");
+      return;
+    }
+
+    setIsJoining(true);
+
+    try {
+      const res = await fetch(`/api/sessions/join/${id}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ password }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setJoinError(data.message ?? "Invalid session password.");
+        return;
+      }
+
+      navigate(`/editor/${data.sessionCode}`);
+    } catch {
+      setJoinError("Unable to verify session password.");
+    } finally {
+      setIsJoining(false);
+    }
   }
 
   return (
     <form className="flex flex-col text-xs" onSubmit={handleSubmit}>
-      <div className="flex flex-col py-4 gap-2">
-        <div className="flex gap-1 items-center">
-          <span className="font-medium">
-            {isSignedIn ? "You're ready to join" : "Sign in required"}
-          </span>
-        </div>
-
-        <span className="text-[10px] text-gray-500 pb-1">
-          {isSignedIn
-            ? "Join the live interview session and open the collaborative editor."
-            : "Please sign in with your invited account to access this interview session."}
+      <div className="flex flex-col py-4 gap-3">
+        <span className="font-medium">
+          {isSignedIn ? "Session password required" : "Sign in required"}
         </span>
+
+        <span className="text-[10px] text-gray-500">
+          {isSignedIn
+            ? "Enter the password provided for this session."
+            : "Please sign in to continue."}
+        </span>
+
+        {isSignedIn && (
+          <>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => {
+                setPassword(e.target.value);
+                setJoinError("");
+              }}
+              placeholder="Enter session password"
+              className="w-full border px-3 py-2 text-sm rounded-md"
+            />
+
+            {joinError && (
+              <p className="text-xs text-red-600">{joinError}</p>
+            )}
+          </>
+        )}
 
         <button
           type="submit"
-          className={`${buttonStyles} bg-black text-white text-xs hover:opacity-90 transition-colors duration-300 cursor-pointer`}
+          disabled={isJoining}
+          className={`${buttonStyles} bg-black text-white`}
         >
-          {isSignedIn ? "Join Interview Session >" : "Sign In to Join >"}
+          {isJoining
+            ? "Verifying..."
+            : isSignedIn
+              ? "Join Interview Session >"
+              : "Sign In to Join >"}
         </button>
       </div>
     </form>
@@ -191,96 +242,41 @@ export default function JoinSession() {
   useEffect(() => {
     async function loadSession() {
       try {
-        const response = await fetch(`/api/sessions/join/${id}`);
-        const data = await response.json();
+        const res = await fetch(`/api/sessions/join/${id}`);
+        const data = await res.json();
 
-        if (!response.ok) {
-          setError(data.message ?? "Unable to load interview session.");
+        if (!res.ok) {
+          setError(data.message ?? "Unable to load session.");
           return;
         }
 
         setSession(data);
       } catch {
-        setError("Unable to load interview session.");
+        setError("Unable to load session.");
       } finally {
         setLoading(false);
       }
     }
 
-    if (id) {
-      loadSession();
-    }
+    if (id) loadSession();
   }, [id]);
 
   const interview = useMemo(() => {
     return session ? mapSessionToInterview(session) : null;
   }, [session]);
 
-  const subTextStyle = "text-xs";
-
   return (
-    <div className="flex flex-col items-center justify-center w-screen min-h-screen bg-white px-4">
-      <div className="flex items-center gap-2 p-8">
-        <img className="w-8" src="/src/assets/logo.png" alt="EnterView Logo" />
-        <h1 className="text-2xl pt-2">EnterView</h1>
-      </div>
-
-      <div className="flex flex-col w-full max-w-140 rounded-2xl bg-white border border-border shadow-xl px-5 pt-3 pb-10">
-        {loading ? (
-          <div className="py-10 text-sm text-gray-500">Loading interview session...</div>
-        ) : error || !interview ? (
-          <div className="py-10">
-            <h2 className="text-xl font-semibold">Session unavailable</h2>
-            <p className="text-sm text-gray-500 mt-2">
-              {error || "We couldn't find that interview session."}
-            </p>
-          </div>
-        ) : (
-          <>
-            <div className="flex flex-col items-center gap-2 pt-2 pb-8">
-              <div className="bg-blue-200 rounded-lg px-2 py-0.5">
-                <p className="text-[10px] font-semibold text-blue-600">
-                  Interview Session
-                </p>
-              </div>
-
-              <h2 className="text-xl font-semibold">
-                {interview.position} Interview
-              </h2>
-
-              <p className={`${subTextStyle} text-gray-400`}>
-                You've been invited to join this interview session
-              </p>
-            </div>
-
-            <div className="border-b border-gray-300 pb-4">
-              <InfoCard interview={interview} />
-              <JoinAction interview={interview} isSignedIn={Boolean(token)} />
-
-              <div className="flex gap-3 bg-blue-100 border border-blue-200 rounded-lg p-4">
-                <CircleAlert className="w-5 h-5 text-blue-700 shrink-0 mt-0.5" />
-                <div className="flex flex-col text-[11px] gap-2 py-1">
-                  <span className="text-xs font-semibold text-blue-900">
-                    Need help?
-                  </span>
-                  <span className="text-blue-700">
-                    If you can't access your interview session, please contact
-                    <span className="text-[11px] font-bold">
-                      {" "}
-                      {interview.interviewer}
-                    </span>{" "}
-                    or an interview coordinator.
-                  </span>
-                </div>
-              </div>
-            </div>
-          </>
-        )}
-      </div>
-
-      <span className="text-xs text-gray-400 pt-4">
-        Powered by EnterView • Secure Interview Platform
-      </span>
+    <div className="flex flex-col items-center justify-center min-h-screen bg-white px-4">
+      {loading ? (
+        <div>Loading...</div>
+      ) : error || !interview ? (
+        <div>{error || "Session not found"}</div>
+      ) : (
+        <>
+          <InfoCard interview={interview} />
+          <JoinAction isSignedIn={Boolean(token)} />
+        </>
+      )}
     </div>
   );
 }
