@@ -1,4 +1,4 @@
-import { LogOut } from "lucide-react";
+import { LogOut, BarChart2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import logo from "../assets/Group_Logo.png";
 import { useAuth } from "../context/AuthContext";
@@ -48,7 +48,28 @@ const LoggedInNavbar = () => {
         <div style={{ fontWeight: 500, fontSize: 18, color: colors.black }}>
           EnterView
         </div>
-        <div style={{ color: colors.charcoal }}>Dashboard</div>
+        <div
+          onClick={() => navigate("/dashboard")}
+          style={{ color: colors.charcoal, cursor: "pointer" }}
+        >
+          Dashboard
+        </div>
+        {user?.role === "interviewer" && (
+          <div
+            onClick={() => navigate("/analytics")}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
+              color: colors.charcoal,
+              cursor: "pointer",
+              fontSize: 15,
+            }}
+          >
+            <BarChart2 size={15} />
+            Analytics
+          </div>
+        )}
       </div>
 
       <div style={{ display: "flex", alignItems: "center", gap: 14 }}>

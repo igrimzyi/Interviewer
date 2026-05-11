@@ -73,16 +73,21 @@ export async function createSession(req: AuthRequest, res: Response) {
 }
 
 // GET /api/sessions
-// Returns sessions where the logged-in user is the interviewer
+// Returns sessions where the logged-in user is the interviewer or interviewee
 export async function getMySessions(req: AuthRequest, res: Response) {
   try {
     const sessions = await (Session as any).findAll({
-      where: { interviewerId: req.user!.userId },
+      where: {
+        [Op.or]: [
+          { interviewerId: req.user!.userId },
+          { intervieweeId: req.user!.userId },
+        ],
+      },
       include: [
         {
           model: Question,
           as: 'question',
-          attributes: ['id', 'title', 'difficulty', 'category'],
+          attributes: ['id', 'title', 'difficulty', 'category', 'suggestedTimeLimitMinutes'],
           required: false,
         },
         {
@@ -148,6 +153,21 @@ export async function getSessionByCode(req: AuthRequest, res: Response) {
 
     if (!canAccess) {
       return res.status(403).json({ message: 'You do not have access to this session.' });
+    }
+
+    const isInterviewer = session.interviewerId === req.user!.userId;
+    if (!isInterviewer && session.scheduledAt) {
+      const now = new Date();
+      const start = new Date(session.scheduledAt);
+      const durationMs = (session.question?.suggestedTimeLimitMinutes ?? 60) * 60 * 1000;
+      const end = new Date(start.getTime() + durationMs);
+
+      if (now < start) {
+        return res.status(403).json({ message: 'Session has not started yet.' });
+      }
+      if (now > end) {
+        return res.status(403).json({ message: 'Session time has ended.' });
+      }
     }
 
     return res.json(session);
@@ -264,6 +284,145 @@ export async function getJoinSessionPreview(req: AuthRequest, res: Response) {
   } catch (err) {
     console.error('getJoinSessionPreview error:', err);
     return res.status(500).json({ message: 'Failed to fetch session preview.' });
+  }
+}
+
+// GET /api/analytics
+// Returns interview analytics for the logged-in interviewer
+export async function getAnalytics(req: AuthRequest, res: Response) {
+  try {
+    const sessions = await (Session as any).findAll({
+      where: { interviewerId: req.user!.userId },
+      include: [
+        {
+          model: Question,
+          as: 'question',
+          attributes: ['id', 'title', 'difficulty', 'category'],
+          required: false,
+        },
+        {
+          model: User,
+          as: 'interviewee',
+          attributes: ['firstName', 'lastName', 'email'],
+          required: false,
+        },
+      ],
+      order: [['scheduledAt', 'DESC']],
+    });
+
+    const completed = sessions.filter((s: any) => s.status === 'completed');
+    const active = sessions.filter((s: any) => s.status === 'active');
+    const scheduled = sessions.filter((s: any) => s.status === 'scheduled');
+    const cancelled = sessions.filter((s: any) => s.status === 'cancelled');
+
+    const durationsMinutes = completed
+      .filter((s: any) => s.startedAt && s.endedAt)
+      .map((s: any) => (new Date(s.endedAt).getTime() - new Date(s.startedAt).getTime()) / 60000);
+
+    const avgDurationMinutes =
+      durationsMinutes.length > 0
+        ? Math.round(durationsMinutes.reduce((a: number, b: number) => a + b, 0) / durationsMinutes.length)
+        : null;
+
+    const byDifficulty: Record<string, { total: number; completed: number }> = {
+      easy: { total: 0, completed: 0 },
+      medium: { total: 0, completed: 0 },
+      hard: { total: 0, completed: 0 },
+    };
+
+    const questionMap = new Map<string, {
+      questionId: string;
+      title: string;
+      difficulty: string;
+      category: string;
+      sessionCount: number;
+      completedCount: number;
+      durations: number[];
+    }>();
+
+    for (const s of sessions) {
+      const diff = s.question?.difficulty;
+      if (diff && byDifficulty[diff]) {
+        byDifficulty[diff].total++;
+        if (s.status === 'completed') byDifficulty[diff].completed++;
+      }
+
+      if (s.question) {
+        const qid = s.question.id;
+        if (!questionMap.has(qid)) {
+          questionMap.set(qid, {
+            questionId: qid,
+            title: s.question.title,
+            difficulty: s.question.difficulty,
+            category: s.question.category,
+            sessionCount: 0,
+            completedCount: 0,
+            durations: [],
+          });
+        }
+        const entry = questionMap.get(qid)!;
+        entry.sessionCount++;
+        if (s.status === 'completed') {
+          entry.completedCount++;
+          if (s.startedAt && s.endedAt) {
+            entry.durations.push((new Date(s.endedAt).getTime() - new Date(s.startedAt).getTime()) / 60000);
+          }
+        }
+      }
+    }
+
+    const byQuestion = Array.from(questionMap.values()).map((q) => ({
+      questionId: q.questionId,
+      title: q.title,
+      difficulty: q.difficulty,
+      category: q.category,
+      sessionCount: q.sessionCount,
+      completedCount: q.completedCount,
+      avgDurationMinutes:
+        q.durations.length > 0
+          ? Math.round(q.durations.reduce((a, b) => a + b, 0) / q.durations.length)
+          : null,
+    }));
+
+    const completedSessions = completed.map((s: any) => ({
+      id: s.id,
+      sessionCode: s.sessionCode,
+      title: s.title,
+      scheduledAt: s.scheduledAt,
+      startedAt: s.startedAt,
+      endedAt: s.endedAt,
+      durationMinutes:
+        s.startedAt && s.endedAt
+          ? Math.round((new Date(s.endedAt).getTime() - new Date(s.startedAt).getTime()) / 60000)
+          : null,
+      selectedLanguage: s.selectedLanguage,
+      submittedCode: s.submittedCode ?? null,
+      question: s.question
+        ? { id: s.question.id, title: s.question.title, difficulty: s.question.difficulty, category: s.question.category }
+        : null,
+      interviewee: s.interviewee
+        ? { firstName: s.interviewee.firstName, lastName: s.interviewee.lastName, email: s.interviewee.email }
+        : null,
+    }));
+
+    return res.json({
+      overview: {
+        total: sessions.length,
+        completed: completed.length,
+        active: active.length,
+        scheduled: scheduled.length,
+        cancelled: cancelled.length,
+        completionRate:
+          sessions.length > 0 ? Math.round((completed.length / sessions.length) * 100) : 0,
+        avgDurationMinutes,
+      },
+      byDifficulty,
+      byQuestion,
+      completedSessions,
+    });
+  } catch (err) {
+    console.error('getAnalytics error:', err);
+    return res.status(500).json({ message: 'Failed to fetch analytics.' });
   }
 }
 

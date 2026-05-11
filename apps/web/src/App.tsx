@@ -12,6 +12,7 @@ import { AuthProvider } from "./context/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
 import QuestionPage from "./pages/QuestionPage";
 import QuestionBank from "./pages/QuestionBank";
+import Analytics from "./pages/Analytics";
 import NotFound from "./pages/NotFound";
 
 function App() {
@@ -65,6 +66,15 @@ function App() {
             element={
               <ProtectedRoute>
                 <QuestionBank />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/analytics"
+            element={
+              <ProtectedRoute>
+                <Analytics />
               </ProtectedRoute>
             }
           />
