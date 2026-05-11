@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import LoggedInNavbar from "../components/LoggedInNavbar";
 import { useAuth } from "../context/AuthContext";
 import {
   Plus,
   Users,
   FileCode,
-  Calendar,
   Clock,
   ChevronRight,
   BarChart2,
+  Calendar,
 } from "lucide-react";
 
 /* ===============================
@@ -37,6 +37,7 @@ interface ApiSession {
     title: string;
     difficulty: "easy" | "medium" | "hard";
     category: string;
+    suggestedTimeLimitMinutes?: number;
   } | null;
 }
 
@@ -50,6 +51,14 @@ interface ApiActivity {
 /* ===============================
    HELPERS
 ================================= */
+
+function isSessionInWindow(session: ApiSession): boolean {
+  if (!session.scheduledAt) return true;
+  const now = Date.now();
+  const start = new Date(session.scheduledAt).getTime();
+  const durationMs = (session.question?.suggestedTimeLimitMinutes ?? 60) * 60 * 1000;
+  return now >= start && now <= start + durationMs;
+}
 
 function formatDate(iso: string | null): string {
   if (!iso) return "TBD";
@@ -100,6 +109,7 @@ const colors = {
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { token, user } = useAuth();
   const isInterviewer = user?.role === "interviewer";
 
@@ -107,6 +117,9 @@ const Dashboard: React.FC = () => {
   const [activities, setActivities] = useState<ApiActivity[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [navError] = useState<string | null>(
+    (location.state as { error?: string } | null)?.error ?? null
+  );
 
   useEffect(() => {
     async function load() {
@@ -175,6 +188,22 @@ const Dashboard: React.FC = () => {
           Here&apos;s what&apos;s happening with your interviews today.
         </p>
 
+        {navError && (
+          <div
+            style={{
+              marginTop: 16,
+              padding: "12px 16px",
+              background: "#FEF2F2",
+              border: "1px solid #FECACA",
+              borderRadius: 10,
+              color: "#B91C1C",
+              fontSize: 14,
+            }}
+          >
+            {navError}
+          </div>
+        )}
+
         {loading ? (
           <p style={{ marginTop: 30 }}>Loading dashboard...</p>
         ) : error ? (
@@ -202,12 +231,6 @@ const Dashboard: React.FC = () => {
                       },
                     ]
                   : []),
-                {
-                  title: "Invite Team",
-                  subtitle: "Add interviewers",
-                  icon: <Users size={20} />,
-                  color: "#7C3AED",
-                },
                 ...(isInterviewer
                   ? [
                       {
@@ -226,12 +249,6 @@ const Dashboard: React.FC = () => {
                       },
                     ]
                   : []),
-                {
-                  title: "Calendar",
-                  subtitle: "View schedule",
-                  icon: <Calendar size={20} />,
-                  color: "#EA580C",
-                },
               ].map((card, i) => (
                 <div
                   key={i}
@@ -404,26 +421,40 @@ const Dashboard: React.FC = () => {
                           gap: 10,
                         }}
                       >
-                        <button
-                          type="button"
-                          onClick={() => navigate(`/editor/${session.sessionCode}`)}
-                          style={{
-                            display: "inline-flex",
-                            alignItems: "center",
-                            gap: 8,
-                            padding: "10px 14px",
-                            borderRadius: 10,
-                            border: "none",
-                            background: colors.blue,
-                            color: "#FFFFFF",
-                            fontSize: 14,
-                            fontWeight: 500,
-                            cursor: "pointer",
-                          }}
-                        >
-                          Join Session
-                          <ChevronRight size={16} />
-                        </button>
+                        {(() => {
+                          const inWindow = isInterviewer || isSessionInWindow(session);
+                          return (
+                            <button
+                              type="button"
+                              disabled={!inWindow}
+                              onClick={() => inWindow && navigate(`/editor/${session.sessionCode}`)}
+                              title={
+                                inWindow
+                                  ? undefined
+                                  : session.scheduledAt && Date.now() < new Date(session.scheduledAt).getTime()
+                                  ? "Session hasn't started yet"
+                                  : "Session time has ended"
+                              }
+                              style={{
+                                display: "inline-flex",
+                                alignItems: "center",
+                                gap: 8,
+                                padding: "10px 14px",
+                                borderRadius: 10,
+                                border: "none",
+                                background: inWindow ? colors.blue : "#CBD5E1",
+                                color: "#FFFFFF",
+                                fontSize: 14,
+                                fontWeight: 500,
+                                cursor: inWindow ? "pointer" : "not-allowed",
+                                opacity: inWindow ? 1 : 0.7,
+                              }}
+                            >
+                              Join Session
+                              <ChevronRight size={16} />
+                            </button>
+                          );
+                        })()}
                       </div>
                     </div>
                   ))

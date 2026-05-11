@@ -73,16 +73,21 @@ export async function createSession(req: AuthRequest, res: Response) {
 }
 
 // GET /api/sessions
-// Returns sessions where the logged-in user is the interviewer
+// Returns sessions where the logged-in user is the interviewer or interviewee
 export async function getMySessions(req: AuthRequest, res: Response) {
   try {
     const sessions = await (Session as any).findAll({
-      where: { interviewerId: req.user!.userId },
+      where: {
+        [Op.or]: [
+          { interviewerId: req.user!.userId },
+          { intervieweeId: req.user!.userId },
+        ],
+      },
       include: [
         {
           model: Question,
           as: 'question',
-          attributes: ['id', 'title', 'difficulty', 'category'],
+          attributes: ['id', 'title', 'difficulty', 'category', 'suggestedTimeLimitMinutes'],
           required: false,
         },
         {
@@ -148,6 +153,21 @@ export async function getSessionByCode(req: AuthRequest, res: Response) {
 
     if (!canAccess) {
       return res.status(403).json({ message: 'You do not have access to this session.' });
+    }
+
+    const isInterviewer = session.interviewerId === req.user!.userId;
+    if (!isInterviewer && session.scheduledAt) {
+      const now = new Date();
+      const start = new Date(session.scheduledAt);
+      const durationMs = (session.question?.suggestedTimeLimitMinutes ?? 60) * 60 * 1000;
+      const end = new Date(start.getTime() + durationMs);
+
+      if (now < start) {
+        return res.status(403).json({ message: 'Session has not started yet.' });
+      }
+      if (now > end) {
+        return res.status(403).json({ message: 'Session time has ended.' });
+      }
     }
 
     return res.json(session);

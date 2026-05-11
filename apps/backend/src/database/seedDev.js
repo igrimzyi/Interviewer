@@ -56,7 +56,7 @@ const questionFixtures = [
     description:
       'Given an array of intervals where intervals[i] = [start, end], merge all overlapping intervals and return the result.',
     constraints: '1 <= intervals.length <= 10^4\n0 <= start <= end <= 10^4',
-    suggestedTimeLimitMinutes: 45,
+    suggestedTimeLimitMinutes: 180,
     examples: [
       {
         input: 'intervals = [[1,3],[2,6],[8,10],[15,18]]',
@@ -231,11 +231,55 @@ async function run() {
     const questions = await createQuestions(interviewer.id, organization.id);
     const [twoSum, mergeIntervals, lruCache] = questions;
 
+    // Timing-demo anchors — relative to seed time so the scenario is always valid
+    const now = new Date();
+    const activeStart   = new Date(now.getTime() - 15 * 60 * 1000);  // started 15 min ago (mergeIntervals = 180 min → window open until +165 min)
+    const futureStart   = new Date(now.getTime() + 60 * 60 * 1000);  // starts in 1 hour → not yet
+    const expiredStart  = new Date(now.getTime() - 90 * 60 * 1000);  // started 90 min ago (twoSum = 30 min → ended 60 min ago)
+
     const twoSumCode = 'function twoSum(nums, target) {\n  const map = {};\n  for (let i = 0; i < nums.length; i++) {\n    const comp = target - nums[i];\n    if (map[comp] !== undefined) return [map[comp], i];\n    map[nums[i]] = i;\n  }\n}\n';
     const mergeCode = 'function merge(intervals) {\n  intervals.sort((a, b) => a[0] - b[0]);\n  const result = [intervals[0]];\n  for (const [s, e] of intervals.slice(1)) {\n    const last = result[result.length - 1];\n    if (s <= last[1]) last[1] = Math.max(last[1], e);\n    else result.push([s, e]);\n  }\n  return result;\n}\n';
     const lruCode = 'class LRUCache {\n  constructor(capacity) {\n    this.capacity = capacity;\n    this.map = new Map();\n  }\n  get(key) {\n    if (!this.map.has(key)) return -1;\n    const val = this.map.get(key);\n    this.map.delete(key);\n    this.map.set(key, val);\n    return val;\n  }\n  put(key, value) {\n    if (this.map.has(key)) this.map.delete(key);\n    else if (this.map.size >= this.capacity) this.map.delete(this.map.keys().next().value);\n    this.map.set(key, value);\n  }\n}\n';
 
     await Session.bulkCreate([
+      // ── Timing-demo sessions (relative to seed time) ────────────────────
+      {
+        sessionCode: 'INTIME1',
+        title: 'Active Window Demo',
+        status: 'scheduled',
+        questionId: mergeIntervals.id,
+        interviewerId: interviewer.id,
+        intervieweeId: viswa.id,
+        organizationId: organization.id,
+        scheduledAt: activeStart,   // 15 min ago, 45-min window → still open
+        selectedLanguage: 'JavaScript',
+        currentCode: null,
+      },
+      {
+        sessionCode: 'NOTYET1',
+        title: 'Future Session Demo',
+        status: 'scheduled',
+        questionId: twoSum.id,
+        interviewerId: interviewer.id,
+        intervieweeId: anthony.id,
+        organizationId: organization.id,
+        scheduledAt: futureStart,   // 1 hour from now → hasn't started
+        selectedLanguage: 'JavaScript',
+        currentCode: null,
+      },
+      {
+        sessionCode: 'EXPIRD1',
+        title: 'Expired Window Demo',
+        status: 'scheduled',
+        questionId: twoSum.id,
+        interviewerId: interviewer.id,
+        intervieweeId: antonio.id,
+        organizationId: organization.id,
+        scheduledAt: expiredStart,  // 90 min ago, 30-min window → ended 60 min ago
+        selectedLanguage: 'JavaScript',
+        currentCode: null,
+      },
+
       // ── Upcoming / active ───────────────────────────────────────────────
       {
         sessionCode: 'DEV12345',
@@ -483,6 +527,10 @@ async function run() {
     console.log('  ben@acme.dev      (Benjamin Harrity)');
     console.log('  david@acme.dev    (David Solis Gallo)');
     console.log('  abhinay@acme.dev  (Abhinay Goud Adhire)');
+    console.log('Timing demo codes:');
+    console.log('  INTIME1 — in window (started 15 min ago, 180-min limit)');
+    console.log('  NOTYET1 — not started (starts in 1 hour)');
+    console.log('  EXPIRD1 — expired (started 90 min ago, 30-min limit)');
     console.log('Sample join codes: DEV12345, PAIR6789, HIRED001');
     process.exit(0);
   } catch (error) {

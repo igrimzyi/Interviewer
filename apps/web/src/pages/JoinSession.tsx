@@ -143,6 +143,8 @@ function InfoCard({ interview }: Props) {
 
 function JoinAction({ interview, isSignedIn }: Props & { isSignedIn: boolean }) {
   const navigate = useNavigate();
+  const now = Date.now();
+  const inWindow = now >= interview.start.getTime() && now <= interview.end.getTime();
 
   function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -155,24 +157,42 @@ function JoinAction({ interview, isSignedIn }: Props & { isSignedIn: boolean }) 
     navigate("/login");
   }
 
+  const notStartedYet = now < interview.start.getTime();
+  const statusMessage = notStartedYet
+    ? "Session hasn't started yet"
+    : "Session time has ended";
+
   return (
     <form className="flex flex-col text-xs" onSubmit={handleSubmit}>
       <div className="flex flex-col py-4 gap-2">
         <div className="flex gap-1 items-center">
           <span className="font-medium">
-            {isSignedIn ? "You're ready to join" : "Sign in required"}
+            {!inWindow
+              ? statusMessage
+              : isSignedIn
+              ? "You're ready to join"
+              : "Sign in required"}
           </span>
         </div>
 
         <span className="text-[10px] text-gray-500 pb-1">
-          {isSignedIn
+          {!inWindow
+            ? notStartedYet
+              ? `This session opens at ${interview.start.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}.`
+              : "This session is no longer accepting participants."
+            : isSignedIn
             ? "Join the live interview session and open the collaborative editor."
             : "Please sign in with your invited account to access this interview session."}
         </span>
 
         <button
           type="submit"
-          className={`${buttonStyles} bg-black text-white text-xs hover:opacity-90 transition-colors duration-300 cursor-pointer`}
+          disabled={!inWindow}
+          className={`${buttonStyles} text-white text-xs transition-colors duration-300 ${
+            inWindow
+              ? "bg-black hover:opacity-90 cursor-pointer"
+              : "bg-gray-400 cursor-not-allowed opacity-70"
+          }`}
         >
           {isSignedIn ? "Join Interview Session >" : "Sign In to Join >"}
         </button>

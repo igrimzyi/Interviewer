@@ -456,6 +456,11 @@ const handleSubmitCode = useCallback(async () => {
 
         const data = await response.json();
 
+        if (response.status === 403) {
+          navigate("/dashboard", { state: { error: data.message } });
+          return;
+        }
+
         if (!response.ok || !data.question) {
           return;
         }
